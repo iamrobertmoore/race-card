@@ -272,7 +272,7 @@ function update(full){const c=D.courses[cur],s=samples(c,gains),p=pGoal(s);$('le
  tween('pct',p*100,$('pct'),v=>Math.round(v));$('ring').style.strokeDashoffset=628.3*(1-p);
  tween('time',pctl(s,.5),$('time'),hm);$('rng').innerHTML=`80% RANGE<br>${hm(pctl(s,.1))} – ${hm(pctl(s,.9))}`;hist(s);
  [0,1,2].forEach(i=>{const g=[0,0,0];g[i]=gains[i];const pi=pGoal(samples(c,g));const el=$('v'+i);if(el)el.innerHTML=`+${(gains[i]*100).toFixed(1).replace('.0','')}% → <b>${Math.round(pi*100)}%</b>`})}
-function gapLine(c){const p0=pGoal(samples(c,[0,0,0])),T=p0<.5?.5:.8,word=T===.5?'a coin flip':'an 80% shot';
+function gapLine(c){const p0=pGoal(samples(c,[0,0,0]));if(p0>=.8){$('gap').innerHTML=`Already better than an 80% shot at ${gname} here. Hold what you've got.`;return}const T=p0<.5?.5:.8,word=T===.5?'a coin flip':'an 80% shot';
  const need=[0,1,2].map(i=>solve(c,i,T));const parts=need.map((g,i)=>g==null?null:`${['swim','bike','run'][i]} <b>${(g*100).toFixed(1)}%</b> faster`).filter(Boolean);
  $('gap').innerHTML=parts.length?`To make ${gname} ${word} here on one leg alone: ${parts.join(', or ')}.`:`No single leg gets ${gname} to ${word} here. It needs all three.`}
 function select(i){cur=i;$('course').value=i;const c=D.courses[i];gapLine(c);
