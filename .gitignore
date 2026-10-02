@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+data/
+*.zip
+activities*.csv
+race-card.html
+.env*
+.DS_Store
