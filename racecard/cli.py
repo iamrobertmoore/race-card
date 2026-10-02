@@ -1,73 +1,65 @@
-"""racecard <export> --race weymouth-70.3 [--name Sam] [--goal 5:30] [--races races.json]"""
+"""racecard <export> [--name Sam] [--for Sam] [--goal 5:00] [--races races.json] [--out race-card.html]"""
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import json
 import webbrowser
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
-
-from . import backtest as bt
-from . import card, explain, ingest
-from .model import finish_distribution, predict_leg
-from .races import COURSES, DEFAULT_TRANSITIONS_S
+from . import card, explain, ingest, report
 
 
-def _parse_hm(s: str | None) -> float | None:
-    if not s:
-        return None
+def _hm(s: str) -> int:
     h, m = s.split(":")
     return int(h) * 3600 + int(m) * 60
 
 
-def build(export: str, race: str, name: str, goal: str | None, races_file: str | None, out: str, skip_backtest: bool = False) -> dict:
+def facts_for(data: dict, course_id: str = "weymouth") -> dict:
+    c = next((c for c in data["courses"] if c["id"] == course_id), data["courses"][0])
+    best = data["courses"][0]
+    widths = {l["sport"]: l["hi_s"] - l["lo_s"] for l in c["legs"]}
+    return {
+        "athlete": data["built_for"], "goal": card.hm(data["goal_s"]), "race": c["name"],
+        "chance_of_goal_percent": round(c["p_goal"] * 100), "predicted_finish": card.hm(c["median_s"]),
+        "finish_range_80": [card.hm(c["lo_s"]), card.hm(c["hi_s"])],
+        "legs": {l["sport"]: {"predicted": card.hms(l["median_s"]), "range_80": [card.hms(l["lo_s"]), card.hms(l["hi_s"])]} for l in c["legs"]},
+        "bike_climbing_m": c["bike_m"], "widest_range_leg": max(widths, key=widths.get),
+        "best_course": best["name"], "best_course_chance_percent": round(best["p_goal"] * 100),
+    }
+
+
+def build(export: str, name: str, built_for: str, goal: str, races_file: str | None, out: str,
+          backtest: bool = True, use_gemma: bool = True) -> dict:
     sessions = ingest.load(export)
     if races_file:
         sessions = ingest.mark_races(sessions, [tuple(x) for x in json.loads(Path(races_file).read_text())])
-    course = COURSES[race]
-    ref = pd.Timestamp(dt.date.today()) + pd.Timedelta(days=1)
-    legs = []
-    for sport, km, elev in course["legs"]:
-        p = predict_leg(sessions, sport, ref, km, elev)
-        if p is None:
-            raise SystemExit(f"Not enough {sport} sessions to predict the {sport} (need 12).")
-        legs.append(p)
-    finish = finish_distribution(legs, DEFAULT_TRANSITIONS_S)
-    widths = {l.sport: l.seconds_at(.9) - l.seconds_at(.1) for l in legs}
-    facts = {
-        "race": course["name"], "athlete": name,
-        "finish": card.hm(np.percentile(finish, 50)), "finish_low": card.hm(np.percentile(finish, 10)),
-        "finish_high": card.hm(np.percentile(finish, 90)),
-        "legs": {l.sport: {"predicted": card.hms(l.median_s), "low": card.hms(l.seconds_at(.1)), "high": card.hms(l.seconds_at(.9)),
-                           "sessions_used": l.n_train} for l in legs},
-        "widest_leg": max(widths, key=widths.get), "goal": goal, "course": course["notes"],
-    }
-    text, source = explain.note(facts)
-    rows = [] if skip_backtest else bt.backtest(sessions).to_dict("records")
-    html = card.render(who=name, course=course, legs=legs, finish=finish, transitions_s=DEFAULT_TRANSITIONS_S,
-                       note_text=text, note_source=source, goal_s=_parse_hm(goal), backtest_rows=rows,
-                       data_label=f"{len(sessions)} sessions in your export", generated=dt.datetime.now().strftime("%d %b %Y %H:%M"))
-    Path(out).write_text(html, encoding="utf-8")
-    return {"facts": facts, "note_source": source, "backtest": rows, "out": out}
+    data = report.build(sessions, athlete=name, built_for=built_for, goal_s=_hm(goal), run_backtest=backtest)
+    if use_gemma:
+        f = facts_for(data)
+        text, source = explain.note(f)
+        data["note"] = {"text": text, "source": source, "facts": f}
+    Path(out).write_text(card.render(data), encoding="utf-8")
+    return data
 
 
 def main() -> None:
     a = argparse.ArgumentParser(prog="racecard", description="A race-day prediction from your own training export, made on your machine.")
     a.add_argument("export", help="Strava archive (.zip or activities.csv) or Garmin Connect Activities CSV")
-    a.add_argument("--race", default="weymouth-70.3", choices=sorted(COURSES))
-    a.add_argument("--name", default="you")
-    a.add_argument("--goal", help="goal finish time, h:mm")
+    a.add_argument("--name", default="You", help="whose training this is")
+    a.add_argument("--for", dest="built_for", help="who the card is for (defaults to --name)")
+    a.add_argument("--goal", default="5:00", help="goal finish time, h:mm")
     a.add_argument("--races", help="JSON list of [date, name fragment] marking your past races")
     a.add_argument("--out", default="race-card.html")
+    a.add_argument("--no-backtest", action="store_true")
+    a.add_argument("--no-gemma", action="store_true")
     a.add_argument("--no-open", action="store_true")
     args = a.parse_args()
-    r = build(args.export, args.race, args.name, args.goal, args.races, args.out)
-    print(f"Race card written to {r['out']} (note by {r['note_source']}).")
+    d = build(args.export, args.name, args.built_for or args.name, args.goal, args.races, args.out,
+              backtest=not args.no_backtest, use_gemma=not args.no_gemma)
+    src = d["note"]["source"] if d.get("note") else "off"
+    print(f"Race card written to {args.out}  (Gemma note: {src})")
     if not args.no_open:
-        webbrowser.open(Path(r["out"]).resolve().as_uri())
+        webbrowser.open(Path(args.out).resolve().as_uri())
 
 
 if __name__ == "__main__":

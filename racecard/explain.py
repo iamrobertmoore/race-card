@@ -51,9 +51,9 @@ def ask_gemma(f: dict, timeout: float = 120.0) -> str | None:
 
 
 def template(f: dict) -> str:
-    return (f"If you raced {f['race']} today, your training says about {f['finish']} "
-            f"(80% range {f['finish_low']} to {f['finish_high']}). "
-            f"The leg with the widest range is the {f['widest_leg']}, so that is where consistency would pay most.")
+    return (f"If the race were tomorrow, {f['race']} comes out at about {f['predicted_finish']}, "
+            f"with a {f['chance_of_goal_percent']}% chance of going under {f['goal']}. "
+            f"The {f['widest_range_leg']} has the widest range, so that is where steadier training pays most.")
 
 
 def note(f: dict, tries: int = 3) -> tuple[str, str]:

@@ -16,7 +16,7 @@ def strava_csv(path, seed=1, days=540):
             if sport == "Run":
                 dist = rng.uniform(5, 18); kmh = 10.5 * fit * (1 - 0.006 * dist) * rng.normal(1, .04); elev = dist * rng.uniform(2, 15)
             elif sport == "Ride":
-                dist = rng.uniform(25, 100); kmh = 27 * fit * (1 - 0.001 * dist) * rng.normal(1, .05); elev = dist * rng.uniform(3, 14); kmh *= 1 - 0.01 * elev / dist
+                dist = rng.uniform(25, 100); elev = dist * rng.uniform(0.5, 16); kmh = 29 * fit * (1 - 0.001 * dist) * (1 - 0.018 * elev / dist) * rng.normal(1, .04)
             else:
                 dist = rng.uniform(1.5, 3.2); kmh = 3.0 * fit * rng.normal(1, .04); elev = 0
             aid += 1
