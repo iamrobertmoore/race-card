@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Race Card</title>
-<meta name="description" content="A race-day prediction from your own training export, made on your own machine with open models.">
+<meta name="description" content="Which IRONMAN 70.3 gives you the best shot at your goal? A race-day prediction from your own Strava export, made on your own machine with open models.">
+<meta property="og:title" content="Race Card · which 70.3 gives you the best shot?">
+<meta property="og:description" content="Every leg of race day predicted as a range from your own training, by an open model running on your laptop.">
+<meta property="og:image" content="https://iamrobertmoore.github.io/race-card/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#05060a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%233ee0ff'/%3E%3Cstop offset='.5' stop-color='%23a46bff'/%3E%3Cstop offset='1' stop-color='%23ff6a3d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%2305060a'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='url(%23g)' stroke-width='4'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -64,7 +70,7 @@ select{appearance:none;width:100%;margin-top:14px;background:var(--panel2) url("
 .leg{border:1px solid var(--line);border-radius:16px;padding:12px 13px;background:rgba(255,255,255,.02);min-width:0}
 .leg .lh{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .leg svg{flex:none;transform:rotate(-90deg)}
-.leg b{margin-top:6px}
+.leg b{margin-top:6px}.dl{font-style:normal;font-size:12px;color:var(--good);margin-left:6px;font-family:'Geist Mono';letter-spacing:0}
 .leg b{display:block;font-size:21px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .leg i{font-style:normal;font-family:"Geist Mono";font-size:10.5px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lev{margin-top:16px}
@@ -75,6 +81,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 14px #fff9}
 .row .v{font-family:"Geist Mono";font-size:12.5px;text-align:right;white-space:nowrap}
 .row .v b{color:var(--ink)}
+.gap{font-size:13.5px;color:#c9cfd8;margin-top:6px}.gap b{color:#fff}
 .note{margin-top:14px;border-left:2px solid var(--hot);padding:2px 0 2px 12px;color:#d5dae2;font-size:14.5px}
 .note small{display:block;font-family:"Geist Mono";font-size:10.5px;color:var(--dim);margin-top:6px;letter-spacing:.04em}
 section.s{padding:56px 0 8px}
@@ -111,11 +118,18 @@ details.all summary{cursor:pointer;font-family:"Geist Mono";font-size:12px;color
 .stat b{display:block;font-size:40px;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
 .stat span{font-family:"Geist Mono";font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
 .heart{width:100%;height:150px;display:block;margin-top:18px}
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px;counter-reset:s}
+.st{border:1px solid var(--line);border-radius:18px;padding:18px;background:var(--panel);position:relative;overflow:hidden}
+.st .n{font-family:"Geist Mono";font-size:11px;color:var(--dim)}.st h4{font-size:16px;margin:8px 0 6px}.st p{color:#aeb5c1;font-size:14px}
+.st.g{border-color:rgba(62,224,255,.25)}.st.g::after{content:"GEMMA 4";position:absolute;right:14px;top:14px;font-family:"Geist Mono";font-size:10px;letter-spacing:.12em;color:var(--swim)}
+.st.t{border-color:rgba(164,107,255,.35)}.st.t::after{content:"TABPFN";position:absolute;right:14px;top:14px;font-family:"Geist Mono";font-size:10px;letter-spacing:.12em;color:var(--bike)}
+@media (max-width:980px){.flow{grid-template-columns:minmax(0,1fr)}}
 .why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
 .why div{border:1px solid var(--line);border-radius:18px;padding:18px;background:var(--panel)}
 .why h4{font-size:16px;margin-bottom:6px}.why p{color:#aeb5c1;font-size:14.5px}
 footer{padding:60px 0 50px;color:var(--dim);font-size:13px}
 footer li{margin:4px 0 4px 18px}
+:focus-visible{outline:2px solid #a46bff;outline-offset:3px}
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}.reveal.vis{opacity:1;transform:none}
 @media (max-width:980px){.hero{grid-template-columns:minmax(0,1fr)}.dash{grid-template-columns:minmax(0,1fr)}.big3,.why{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:620px){h1{font-size:36px}.lede{font-size:16px}.pills .pill:last-child{display:none}.hero{padding-top:18px;gap:26px}.ringbox{transform:scale(.9)}.legs{grid-template-columns:1fr}.course{grid-template-columns:minmax(0,1fr) 60px}.course .el,.course .pbar{display:none}.row{grid-template-columns:40px minmax(0,1fr) 96px;gap:8px}}
@@ -142,7 +156,7 @@ footer li{margin:4px 0 4px 18px}
 <filter id="gl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
 <circle cx="118" cy="118" r="100" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="16"/>
 <circle id="ring" cx="118" cy="118" r="100" fill="none" stroke="url(#rg)" stroke-width="16" stroke-linecap="round" stroke-dasharray="628.3" stroke-dashoffset="628.3" filter="url(#gl)" style="transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)"/></svg>
-<div class="ringc"><div class="pct"><span id="pct">0</span><small>%</small></div><div class="rl" id="rl"></div></div></div>
+<div class="ringc"><div class="pct" aria-live="polite"><span id="pct">0</span><small>%</small></div><div class="rl" id="rl"></div></div></div>
 <select id="course" aria-label="Choose a race"></select>
 <div class="cmeta" id="cmeta"></div>
 <div class="mini3"><div class="sh" style="margin:18px 0 10px">Best shots</div><div id="top3"></div></div>
@@ -153,7 +167,7 @@ footer li{margin:4px 0 4px 18px}
 <div style="position:relative"><div id="glab" class="mono" style="position:absolute;top:12px;font-size:10.5px;color:var(--hot);letter-spacing:.08em;pointer-events:none"></div><svg class="hist" id="hist" viewBox="0 0 600 96" preserveAspectRatio="none" role="img" aria-label="Spread of predicted finish times"></svg></div>
 <div class="ticks" id="ticks"></div>
 <div class="legs" id="legs"></div>
-<div class="lev"><h3>What closes the gap · drag to try</h3><div id="sliders"></div></div>
+<div class="lev"><h3>What closes the gap · drag to try</h3><div id="sliders"></div><p class="gap" id="gap"></p></div>
 <div class="note" id="note" hidden></div>
 </div>
 </div>
@@ -175,6 +189,20 @@ footer li{margin:4px 0 4px 18px}
 <svg class="cal" id="cal" viewBox="0 0 1000 170" role="img" aria-label="Prediction error for every past race leg"></svg>
 <div class="ticks"><span>prediction too fast</span><span>spot on</span><span>prediction too slow</span></div></div>
 <details class="all"><summary>See all <span id="btn"></span> legs</summary><div style="overflow-x:auto"><table class="btt" id="btt"></table></div></details>
+</section>
+
+
+<section class="s reveal" id="how">
+<div class="eyebrow">How it works</div>
+<h2>Two open models, one laptop, no upload.</h2>
+<div class="flow">
+<div class="st"><span class="n">01</span><h4>Your export</h4><p>Strava's activities.csv or a Garmin CSV. Every swim, ride and run you've logged.</p></div>
+<div class="st g"><span class="n">02</span><h4>Gemma 4 finds your races</h4><p id="gemmaline">Reads every activity title and picks out the races, so race-day effort is labelled without you tagging fifteen years by hand.</p></div>
+<div class="st"><span class="n">03</span><h4>Features from your own log</h4><p>Distance, climbing per km, how long ago, the last 7 and 42 days of training load, and whether it was a race.</p></div>
+<div class="st t"><span class="n">04</span><h4>TabPFN predicts each leg</h4><p>An open tabular foundation model learns from your sessions in seconds and returns a full spread of likely speeds, not one number.</p></div>
+<div class="st"><span class="n">05</span><h4>20,000 race days per course</h4><p>Each leg is drawn from its spread, transitions added, and the share under your goal is your chance.</p></div>
+<div class="st g"><span class="n">06</span><h4>Gemma 4 writes the plan</h4><p>Short and plain, from the computed numbers only. Any number it makes up gets the note thrown out.</p></div>
+</div>
 </section>
 
 <section class="s reveal">
@@ -227,8 +255,10 @@ $('whose').textContent=D.athlete===D.built_for?`Predicted from ${D.athlete}'s ow
 $('rl').textContent='chance of '+gname;
 D.courses.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${c.name.replace('IRONMAN ','')} · ${c.when}`;$('course').appendChild(o)});
 $('course').onchange=e=>select(+e.target.value);
-function legsHTML(c,s){const tot=c.legs.reduce((a,l)=>a+l.median_s,0);
- return c.legs.map(l=>{const f=l.median_s/tot,cc=2*Math.PI*15;return `<div class="leg" title="${Math.round(f*100)}% of race time"><div class="lh"><i>${l.sport.toUpperCase()}</i><svg width="26" height="26" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/><circle cx="19" cy="19" r="15" fill="none" stroke="${HEX[l.sport]}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${cc}" stroke-dashoffset="${cc*(1-f)}" style="transition:stroke-dashoffset .9s"/></svg></div><b>${legT(l.sport,l.median_s)}</b><i>${legT(l.sport,l.lo_s)}–${legT(l.sport,l.hi_s)}</i></div>`}).join('')}
+const dlt=x=>x<90?`−${Math.round(x)}s`:`−${Math.round(x/60)} min`;
+function legMed(l,g){return l.km/(interp(.5,L,l.kmh_q)*(1+g))*3600}
+function legsHTML(c){const tot=c.legs.reduce((a,l,i)=>a+legMed(l,gains[i]),0);
+ return c.legs.map((l,i)=>{const med=legMed(l,gains[i]),f=med/tot,cc=2*Math.PI*15;return `<div class="leg" title="${Math.round(f*100)}% of race time"><div class="lh"><i>${l.sport.toUpperCase()}</i><svg width="26" height="26" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/><circle cx="19" cy="19" r="15" fill="none" stroke="${HEX[l.sport]}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${cc}" stroke-dashoffset="${cc*(1-f)}" style="transition:stroke-dashoffset .9s"/></svg></div><b>${legT(l.sport,med)}${gains[i]>0?`<em class="dl">${dlt(legMed(l,0)-med)}</em>`:''}</b><i>${legT(l.sport,l.lo_s/(1+gains[i]))}–${legT(l.sport,l.hi_s/(1+gains[i]))}</i></div>`}).join('')}
 function sliders(){$('sliders').innerHTML=['Swim','Bike','Run'].map((n,i)=>`<div class="row"><span>${n}</span><input type="range" min="0" max="8" step="0.5" value="${gains[i]*100}" data-i="${i}" style="--c:${COL[n.toLowerCase()]}" aria-label="${n} speed improvement"><span class="v" id="v${i}"></span></div>`).join('');
  document.querySelectorAll('input[type=range]').forEach(r=>{const upd=()=>{r.style.setProperty('--p',(r.value/8*100)+'%');gains[+r.dataset.i]=r.value/100;update(false)};r.oninput=upd;upd()})}
 function hist(s){const lo=D.goal_s-45*60,hi=D.goal_s+45*60,B=60,bins=new Array(B).fill(0);for(const v of s){const b=Math.floor((v-lo)/(hi-lo)*B);if(b>=0&&b<B)bins[b]++}
@@ -236,19 +266,23 @@ function hist(s){const lo=D.goal_s-45*60,hi=D.goal_s+45*60,B=60,bins=new Array(B
  bins.forEach((n,i)=>{const bh=n/mx*84,x=i*w,under=lo+(i+1)*(hi-lo)/B<=D.goal_s;h+=`<rect x="${x+1}" y="${92-bh}" width="${w-2}" height="${bh}" rx="2" fill="${under?'url(#hb)':'rgba(255,255,255,.14)'}" style="transition:all .6s"/>`});
  const gx=(D.goal_s-lo)/(hi-lo)*600;h+=`<line x1="${gx}" x2="${gx}" y1="0" y2="96" stroke="#ff3d77" stroke-width="2" vector-effect="non-scaling-stroke"/>`;$('glab').style.left=`calc(${gx/6}% + 6px)`;$('glab').textContent=gname.toUpperCase();
  $('hist').innerHTML=h;$('ticks').innerHTML=[lo,lo+(hi-lo)/4,(lo+hi)/2,lo+3*(hi-lo)/4,hi].map(t=>`<span>${hm(t)}</span>`).join('')}
-function update(full){const c=D.courses[cur],s=samples(c,gains),p=pGoal(s);
+function solve(c,i,target){let lo=0,hi=.2;if(pGoal(samples(c,[0,1,2].map(k=>k===i?hi:0)))<target)return null;for(let k=0;k<14;k++){const m=(lo+hi)/2;pGoal(samples(c,[0,1,2].map(j=>j===i?m:0)))>=target?hi=m:lo=m}return hi}
+function update(full){const c=D.courses[cur],s=samples(c,gains),p=pGoal(s);$('legs').innerHTML=legsHTML(c);
  const base=full?null:pGoal(samples(c,[0,0,0]));
  tween('pct',p*100,$('pct'),v=>Math.round(v));$('ring').style.strokeDashoffset=628.3*(1-p);
  tween('time',pctl(s,.5),$('time'),hm);$('rng').innerHTML=`80% RANGE<br>${hm(pctl(s,.1))} – ${hm(pctl(s,.9))}`;hist(s);
  [0,1,2].forEach(i=>{const g=[0,0,0];g[i]=gains[i];const pi=pGoal(samples(c,g));const el=$('v'+i);if(el)el.innerHTML=`+${(gains[i]*100).toFixed(1).replace('.0','')}% → <b>${Math.round(pi*100)}%</b>`})}
-function select(i){cur=i;$('course').value=i;const c=D.courses[i];
+function gapLine(c){const p0=pGoal(samples(c,[0,0,0])),T=p0<.5?.5:.8,word=T===.5?'a coin flip':'an 80% shot';
+ const need=[0,1,2].map(i=>solve(c,i,T));const parts=need.map((g,i)=>g==null?null:`${['swim','bike','run'][i]} <b>${(g*100).toFixed(1)}%</b> faster`).filter(Boolean);
+ $('gap').innerHTML=parts.length?`To make ${gname} ${word} here on one leg alone: ${parts.join(', or ')}.`:`No single leg gets ${gname} to ${word} here. It needs all three.`}
+function select(i){cur=i;$('course').value=i;const c=D.courses[i];gapLine(c);
  $('cmeta').textContent=`${c.where.toUpperCase()} · BIKE +${c.bike_m} M · ${c.swim.toUpperCase()} SWIM`;
- $('legs').innerHTML=legsHTML(c);document.querySelectorAll('.course').forEach((e,k)=>e.classList.toggle('on',k===i));update(true)}
+ document.querySelectorAll('.course').forEach((e,k)=>e.classList.toggle('on',k===i));update(true)}
 $('top3').innerHTML=D.courses.slice(0,4).map((c,i)=>`<div class="t3" data-i="${i}"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name.replace('IRONMAN 70.3 ','')}</span><div class="pbar"><i style="width:${c.p_goal*100}%"></i></div><span>${Math.round(c.p_goal*100)}%</span></div>`).join('');
 document.querySelectorAll('.t3').forEach(e=>e.onclick=()=>select(+e.dataset.i));
 $('ch2').textContent=`Best shot: ${D.courses[0].name.replace('IRONMAN ','')}, at ${Math.round(D.courses[0].p_goal*100)}%.`;
-$('clist').innerHTML=D.courses.map((c,i)=>`<div class="course" data-i="${i}"><div class="n">${c.name.replace('IRONMAN ','')}<small>${c.where} · ${c.when}</small></div><div class="el">bike +${c.bike_m} m</div><div class="pbar"><i data-w="${c.p_goal*100}"></i></div><div class="pp">${Math.round(c.p_goal*100)}%</div></div>`).join('');
-document.querySelectorAll('.course').forEach(e=>e.onclick=()=>{select(+e.dataset.i);scrollTo({top:0,behavior:'smooth'})});
+$('clist').innerHTML=D.courses.map((c,i)=>`<div class="course" data-i="${i}" role="button" tabindex="0" aria-label="Load ${c.name}"><div class="n">${c.name.replace('IRONMAN ','')}<small>${c.where} · ${c.when}</small></div><div class="el">bike +${c.bike_m} m</div><div class="pbar"><i data-w="${c.p_goal*100}"></i></div><div class="pp">${Math.round(c.p_goal*100)}%</div></div>`).join('');
+document.querySelectorAll('.course').forEach(e=>{e.onclick=()=>{select(+e.dataset.i);scrollTo({top:0,behavior:'smooth'})};e.onkeydown=k=>{if(k.key==='Enter'||k.key===' '){k.preventDefault();e.onclick()}}});
 const bt=D.backtest;
 if(bt.length){const ins=bt.filter(r=>r.inside_80).length,mae=bt.reduce((a,r)=>a+Math.abs(r.error_pct),0)/bt.length;
  $('bth2').textContent=`${ins} of ${bt.length} past race legs landed inside the 80% range. Typical miss: ${mae.toFixed(1)}%.`;
@@ -284,6 +318,7 @@ const lim=['A prediction for one person from their own logged training, not coac
  'TabPFN v2 is licensed for non-commercial use. Course climbing is from IRONMAN\'s own course routes or finishers.com, checked 2 Oct 2026.'];
 $('limits').innerHTML=lim.map(t=>`<li>${t}</li>`).join('');
 $('gen').textContent=`Generated ${D.generated} from ${D.sessions.n} sessions logged ${D.sessions.first} to ${D.sessions.last}.`;
+if(D.gemma){$('gemmaline').innerHTML=`Gemma 4 read ${D.gemma.titles.toLocaleString('en-GB')} activity titles in ${Math.round(D.gemma.seconds/60)} minutes on a laptop and found <b>${D.gemma.agree} of the ${D.gemma.answer_key}</b> races in my hand-checked list.`}
 if(D.note){$('note').hidden=false;$('note').innerHTML=`${D.note.text.replace(/</g,'&lt;')}<small>${D.note.source==='gemma'?'WRITTEN BY GEMMA 4 ON-DEVICE, FROM THE NUMBERS ABOVE ONLY':'TEMPLATE NOTE · OLLAMA WAS NOT RUNNING'}</small>`}
 sliders();const wi=D.courses.findIndex(c=>c.id==='weymouth');select(wi>=0?wi:0);
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('vis');
