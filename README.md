@@ -19,6 +19,10 @@ His training is his, so I tested it on mine first.
   Weymouth (31%), 5:08 at Swansea (24%). The difference is almost all bike climbing.
 - I had it predict 79 of my past race legs, each one using only the training I'd logged before that
   day. **62 of 79 landed inside its 80% range**, and the typical miss was 6.9%.
+- Gemma 4, on the laptop, read 1,005 of my activity titles in under three minutes and found 166 of
+  the 181 races in my hand-checked list, with 6 false alarms. That's after two rounds of fixing the
+  prompt against that same list, so it's a best case. Its first run took 47 minutes, until I turned its
+  thinking off.
 - I've raced Weymouth three times. It predicted my bike too fast every time, by 7 to 11%. So on the
   hilly courses, treat its bike numbers as optimistic.
 
