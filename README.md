@@ -1,6 +1,6 @@
 # Race Card
 
-![Race Card: the chance of a sub-5 IRONMAN 70.3, by course](docs/og.png)
+![Race Card: dragging the bike slider moves the chance of a sub-5 at Weymouth from 31% to 47%, then the flat Erkner course shows 86%](docs/demo.gif)
 
 **Which IRONMAN 70.3 gives you the best shot at your goal time?** Race Card reads your own training
 export, predicts every leg of race day as a range, and ranks eight real 70.3 courses by your chance of
