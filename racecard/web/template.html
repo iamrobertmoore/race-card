@@ -318,7 +318,7 @@ const lim=['A prediction for one person from their own logged training, not coac
  'TabPFN v2 is licensed for non-commercial use. Course climbing is from IRONMAN\'s own course routes or finishers.com, checked 2 Oct 2026.'];
 $('limits').innerHTML=lim.map(t=>`<li>${t}</li>`).join('');
 $('gen').textContent=`Generated ${D.generated} from ${D.sessions.n} sessions logged ${D.sessions.first} to ${D.sessions.last}.`;
-if(D.gemma){$('gemmaline').innerHTML=`Gemma 4 read ${D.gemma.titles.toLocaleString('en-GB')} activity titles in ${Math.round(D.gemma.seconds/60)} minutes on a laptop and found <b>${D.gemma.agree} of the ${D.gemma.answer_key}</b> races in my hand-checked list.`}
+if(D.gemma){const fp=D.gemma.flagged-D.gemma.agree;$('gemmaline').innerHTML=`Gemma 4 read my ${D.gemma.titles.toLocaleString('en-GB')} hand-titled swims, rides and runs in ${Math.max(1,Math.round(D.gemma.seconds/60))} minutes on a laptop. It found <b>${D.gemma.agree} of the ${D.gemma.answer_key}</b> races in my hand-checked list, and flagged ${fp} sessions that weren't.`}
 if(D.note){$('note').hidden=false;$('note').innerHTML=`${D.note.text.replace(/</g,'&lt;')}<small>${D.note.source==='gemma'?'WRITTEN BY GEMMA 4 ON-DEVICE, FROM THE NUMBERS ABOVE ONLY':'TEMPLATE NOTE · OLLAMA WAS NOT RUNNING'}</small>`}
 sliders();const wi=D.courses.findIndex(c=>c.id==='weymouth');select(wi>=0?wi:0);
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('vis');
