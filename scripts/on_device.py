@@ -61,7 +61,8 @@ def cmd_races(a) -> None:
     print(f"Reading {len(acts)} activities with {gemma.MODEL} on this machine. Nothing leaves it.")
     found = gemma.find_races(acts, progress=prog)
     print()
-    out = {"model": gemma.MODEL, "seconds": round(time.time() - t0), "activities": len(acts), "races": found}
+    out = {"model": gemma.MODEL, "seconds": round(time.time() - t0), "activities": len(acts),
+           "titles_read": len(gemma.candidates(acts)), "races": found}
     if a.key:
         out["score"] = gemma.score(found, json.loads(Path(a.key).read_text()))
         s = out["score"]
@@ -69,6 +70,21 @@ def cmd_races(a) -> None:
               f"(recall {s['recall']:.0%}), {s['gemma_found']} flagged (precision {s['precision']:.0%}).")
     Path(a.out).write_text(json.dumps(out, indent=1, ensure_ascii=False))
     print(f"  Saved to {a.out} in {out['seconds']}s.")
+    if a.page and a.key:
+        s = out["score"]
+        _update_page(a.page, lambda d: d.__setitem__("gemma", {
+            "model": gemma.MODEL, "titles": out["titles_read"], "seconds": out["seconds"], "agree": s["agree"],
+            "answer_key": s["answer_key"], "flagged": s["gemma_found"]}))
+        print(f"  Gemma's result saved into {a.page}.")
+
+
+def _update_page(page: str, change) -> None:
+    html = Path(page).read_text(encoding="utf-8")
+    m = DATA_RE.search(html)
+    d = json.loads(m.group(2).replace("<\\/", "</"))
+    change(d)
+    blob = json.dumps(d, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    Path(page).write_text(html[:m.start(2)] + blob + html[m.end(2):], encoding="utf-8")
 
 
 def cmd_note(a) -> None:
@@ -86,11 +102,12 @@ def cmd_note(a) -> None:
         g = [0, 0, 0]
         g[i] = 0.03
         lift[leg["sport"]] = round(chance(c, lv, goal, tr, tuple(g)) * 100)
+    short = lambda n: n.replace("IRONMAN ", "")
     facts = {
-        "athlete": d["built_for"], "goal": hm(goal), "race": c["name"],
-        "chance_percent": round(base * 100), "predicted_finish": hm(c["median_s"]),
-        "best_course": best["name"], "best_course_chance_percent": round(best["p_goal"] * 100),
-        "chance_percent_if_3_percent_faster": lift,
+        "athlete": d["built_for"], "goal": f"sub {hm(goal).replace(':00', '')}", "race": short(c["name"]),
+        "chance_of_goal_here": f"{round(base * 100)}%",
+        "best_course": short(best["name"]), "chance_of_goal_at_best_course": f"{round(best['p_goal'] * 100)}%",
+        "chance_here_if_one_leg_is_3%_faster": {k: f"{v}%" for k, v in lift.items()},
     }
     print("Facts given to Gemma:\n" + json.dumps(facts, indent=1, ensure_ascii=False))
     t0 = time.time()
@@ -98,9 +115,7 @@ def cmd_note(a) -> None:
     if note is None:
         sys.exit(f"Gemma's note invented numbers {bad} three times; page left unchanged." if bad else "No answer from Ollama.")
     print(f"\nGemma wrote, in {time.time() - t0:.0f}s:\n  {note}")
-    d["note"] = {"text": note, "source": "gemma", "model": gemma.MODEL, "facts": facts}
-    blob = json.dumps(d, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    Path(a.page).write_text(html[:m.start(2)] + blob + html[m.end(2):], encoding="utf-8")
+    _update_page(a.page, lambda dd: dd.__setitem__("note", {"text": note, "source": "gemma", "model": gemma.MODEL, "facts": facts}))
     print(f"Note saved into {a.page}.")
 
 
@@ -111,6 +126,7 @@ def main() -> None:
     r.add_argument("csv")
     r.add_argument("--key")
     r.add_argument("--out", default="gemma-races.json")
+    r.add_argument("--page", help="also save Gemma's score into this race card page")
     n = sub.add_parser("note")
     n.add_argument("page")
     n.add_argument("--course", default="weymouth")

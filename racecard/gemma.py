@@ -16,15 +16,18 @@ import urllib.request
 
 OLLAMA = "http://localhost:11434/api/chat"
 MODEL = "gemma4:e4b"
-DEFAULT_NAME = re.compile(r"^(morning|afternoon|evening|night|lunch)\s+(run|ride|swim|walk|workout)$", re.I)
+# Titles the app wrote, not the athlete: "Morning Run", or an old upload named after its date and town.
+DEFAULT_NAME = re.compile(r"^((morning|afternoon|evening|night|lunch)\s+(run|ride|swim|walk|workout)|\d{2}/\d{2}/\d{4}\b.*)$", re.I)
 
 RACE_SYSTEM = (
     "You label an athlete's activity log. Each numbered line is: date | type | distance | title | what else "
     "they did that day. Decide which lines were races the athlete competed in.\n"
     "RACES: a triathlon, duathlon or aquathlon leg (a swim, ride and run on the same day with an event name, "
     "e.g. '70.3 Weymouth bike', 'Outlaw Half Swim', 'T100 run'), a running race (parkrun, 10k, 10 mile, half "
-    "marathon, marathon, a named road race), an open-water swim race, a swimrun, a DNF in a race.\n"
-    "NOT RACES: training, intervals, tempo or 'race pace' work, bricks, Masters swim sessions, warm-ups, "
+    "marathon, marathon, a named road race), an open-water swim race or pier to pier, a swimrun, a DNF in a race. "
+    "A parkrun is a race when the title gives a place or position ('4th place', '3rd') or is just 'Parkrun'.\n"
+    "NOT RACES: training, intervals, tempo or 'race pace' work, bricks, indoor video workouts (Sufferfest), "
+    "Masters swim sessions, open water practice ('Open Water Swim'), virtual Ironman events, warm-ups, "
     "'pre race' shakeouts and openers, course recces, sportives and charity rides, holidays, titles that are "
     "only a date or a place, and parkruns run pushing a buggy or with a child.\n"
     "A full-distance or middle-distance event name on a swim, ride or run is a race even if the title is short. "
@@ -87,6 +90,10 @@ def _ask(chunk: list[dict]) -> set[int] | None:
         return None
 
 
+def candidates(acts: list[dict]) -> list[dict]:
+    return [a for a in acts if a["type"] in RACE_TYPES and a["name"] and not DEFAULT_NAME.match(a["name"])]
+
+
 def find_races(acts: list[dict], batch: int = 25, progress=None) -> list[dict]:
     """Outdoor swims, rides and runs with a title the athlete wrote. Titles Strava generates itself
     ('Morning Run') carry no information, and virtual sessions are never race-day efforts, so both
@@ -95,7 +102,7 @@ def find_races(acts: list[dict], batch: int = 25, progress=None) -> list[dict]:
     for a in acts:
         by_day.setdefault(a["date"], set()).add(a["type"])
     cands = [dict(a, same_day=", ".join(sorted(by_day[a["date"]] - {a["type"]})) or "nothing else")
-             for a in acts if a["type"] in RACE_TYPES and a["name"] and not DEFAULT_NAME.match(a["name"])]
+             for a in candidates(acts)]
     found = []
     for start in range(0, len(cands), batch):
         chunk = cands[start:start + batch]
@@ -123,7 +130,8 @@ def score(found: list[dict], key: list[list[str]]) -> dict:
 NOTE_SYSTEM = (
     "You write a short race-day note for one athlete, from facts you are given. "
     "Use only the numbers in the facts, written exactly as given. Do not invent paces, times, distances or percentages. "
-    "Plain British English, second person, no headings, no lists, at most 80 words. "
+    "Plain British English, second person, no headings, no lists, at most 70 words. Write percentages with a % sign "
+    "and race names without the word IRONMAN. Talk to the athlete like a friend who trains with them. "
     "Say the chance of the goal at this race, compare it with the best course in the facts, "
     "and name the single leg the facts say would move the chance most."
 )
