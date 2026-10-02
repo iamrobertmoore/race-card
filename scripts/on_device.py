@@ -104,7 +104,8 @@ def cmd_note(a) -> None:
         lift[leg["sport"]] = round(chance(c, lv, goal, tr, tuple(g)) * 100)
     short = lambda n: n.replace("IRONMAN ", "")
     facts = {
-        "athlete": d["built_for"], "goal": f"sub {hm(goal).replace(':00', '')}", "race": short(c["name"]),
+        # Whose training the numbers come from, so the note never claims they're someone else's.
+        "athlete": d["athlete"], "goal": f"sub {hm(goal).replace(':00', '')}", "race": short(c["name"]),
         "chance_of_goal_here": f"{round(base * 100)}%",
         "best_course": short(best["name"]), "chance_of_goal_at_best_course": f"{round(best['p_goal'] * 100)}%",
         "chance_here_if_one_leg_is_3%_faster": {k: f"{v}%" for k, v in lift.items()},
