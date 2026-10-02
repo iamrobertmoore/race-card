@@ -11,7 +11,6 @@ import csv
 import datetime as dt
 import json
 import re
-import time
 import urllib.request
 
 OLLAMA = "http://localhost:11434/api/chat"

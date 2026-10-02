@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import random
 import re
 import sys
 import time
@@ -37,16 +36,31 @@ def _interp(x, xs, ys):
     return ys[-1]
 
 
+def _page_rng(seed: int):
+    """mulberry32, the same generator the page uses, so the note and the sliders match to the percent."""
+    a = seed & 0xFFFFFFFF
+
+    def imul(x, y):
+        return (x * y) & 0xFFFFFFFF
+
+    def nxt():
+        nonlocal a
+        a = (a + 0x6D2B79F5) & 0xFFFFFFFF
+        t = imul(a ^ (a >> 15), 1 | a)
+        t = ((t + imul(t ^ (t >> 7), 61 | t)) & 0xFFFFFFFF) ^ t
+        return ((t ^ (t >> 14)) & 0xFFFFFFFF) / 4294967296
+    return nxt
+
+
 def chance(course: dict, levels: list, goal: int, trans: int, gains=(0, 0, 0), n: int = 6000) -> float:
-    rnd = random.Random(7)
-    hit = 0
-    for _ in range(n):
-        tot = trans
-        for i, leg in enumerate(course["legs"]):
-            u = levels[0] + rnd.random() * (levels[-1] - levels[0])
-            tot += leg["km"] / (_interp(u, levels, leg["kmh_q"]) * (1 + gains[i])) * 3600
-        hit += tot < goal
-    return hit / n
+    rnd = _page_rng(7)
+    u = [[levels[0] + rnd() * (levels[-1] - levels[0]) for _ in range(n)] for _ in range(3)]
+    tot = [float(trans)] * n
+    for i, leg in enumerate(course["legs"]):
+        q = leg["kmh_q"]
+        for k in range(n):
+            tot[k] += leg["km"] / (_interp(u[i][k], levels, q) * (1 + gains[i])) * 3600
+    return sum(v < goal for v in tot) / n
 
 
 def cmd_races(a) -> None:
