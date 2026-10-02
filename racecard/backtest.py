@@ -6,9 +6,15 @@ import pandas as pd
 from .model import fit_sport, seconds_at, speed_quantiles
 
 
+# Only race legs about the length of a 70.3 leg are checked: that's the question the card answers.
+LONG = {"swim": (1.0, 3.0), "bike": (60.0, 120.0), "run": (15.0, 25.0)}
+
+
 def backtest(sessions: pd.DataFrame) -> list[dict]:
     rows = []
-    for _, r in sessions[sessions.is_race == 1].iterrows():
+    races = sessions[sessions.is_race == 1]
+    races = races[[LONG[s][0] <= d <= LONG[s][1] for s, d in zip(races.sport, races.distance_km)]]
+    for _, r in races.iterrows():
         ref = r.date.normalize()
         m, n = fit_sport(sessions, r.sport, ref)
         if m is None:

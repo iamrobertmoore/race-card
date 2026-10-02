@@ -120,7 +120,7 @@ def _finish(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # Speeds (km/h) outside these are GPS glitches or mislabelled activities, not training.
-PLAUSIBLE_KMH = {"swim": (1.0, 6.5), "bike": (8.0, 60.0), "run": (5.0, 25.0)}
+PLAUSIBLE_KMH = {"swim": (1.0, 5.5), "bike": (8.0, 60.0), "run": (5.0, 25.0)}
 
 
 def _drop_implausible(df: pd.DataFrame) -> pd.DataFrame:

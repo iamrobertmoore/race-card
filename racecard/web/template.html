@@ -87,6 +87,16 @@ h2{font-size:clamp(28px,3.4vw,38px);letter-spacing:-.04em;line-height:1.08;margi
 .course .el{font-family:"Geist Mono";font-size:12px;color:var(--muted)}
 .pbar{height:8px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}.pbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--bike),var(--hot));width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
 .course .pp{font-family:"Geist Mono";text-align:right;font-weight:600}
+.wey{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.wy{border:1px solid var(--line);border-radius:20px;padding:18px;background:var(--panel);position:relative;overflow:hidden}
+.wy .yr{font-family:"Geist Mono";font-size:11px;color:var(--muted);letter-spacing:.12em}
+.wy .t{display:flex;align-items:baseline;gap:10px;margin:8px 0 4px}.wy .t b{font-size:38px;letter-spacing:-.05em}.wy .t span{font-family:"Geist Mono";font-size:12px;color:var(--muted)}
+.wy .lg{display:grid;grid-template-columns:44px 1fr 1fr 56px;gap:6px;font-family:"Geist Mono";font-size:11.5px;color:#c9cfd8;margin-top:6px}
+.cal{width:100%;height:170px;display:block;margin-top:12px}
+details.all{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:12px 16px}
+details.all summary{cursor:pointer;font-family:"Geist Mono";font-size:12px;color:var(--muted);letter-spacing:.06em}
+.btt{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}.btt td,.btt th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.btt th{color:var(--muted);font-weight:500}
+@media (max-width:980px){.wey{grid-template-columns:minmax(0,1fr)}}
 .bt{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:22px}
 .btc{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--panel)}
 .btc .top{display:flex;justify-content:space-between;font-family:"Geist Mono";font-size:11px;color:var(--muted)}
@@ -159,8 +169,12 @@ footer li{margin:4px 0 4px 18px}
 <section class="s reveal" id="check">
 <div class="eyebrow">Checked before trusted</div>
 <h2 id="bth2"></h2>
-<p class="sub">Each past race leg was predicted using only the training logged before that race day, then compared with what actually happened. The bar is the 80% range, the dot the prediction, the white line the real time.</p>
-<div class="bt" id="bt"></div>
+<p class="sub">Before trusting it with anyone else's race, I made it predict mine. Every past race leg was predicted using only the training logged before that day, then compared with what actually happened. Filled dots landed inside the 80% range.</p>
+<div class="wey" id="wey"></div>
+<div class="panel" style="margin-top:14px"><div class="sh">Every checked leg · how far off the prediction was</div>
+<svg class="cal" id="cal" viewBox="0 0 1000 170" role="img" aria-label="Prediction error for every past race leg"></svg>
+<div class="ticks"><span>prediction too fast</span><span>spot on</span><span>prediction too slow</span></div></div>
+<details class="all"><summary>See all <span id="btn"></span> legs</summary><div style="overflow-x:auto"><table class="btt" id="btt"></table></div></details>
 </section>
 
 <section class="s reveal">
@@ -207,14 +221,14 @@ function tween(key,to,el,fmt,dur=900){const from=shown[key],t0=performance.now()
  (function f(t){const k=reduce?1:Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=fmt(from+(to-from)*e);if(k<1)requestAnimationFrame(f)})(t0)}
 const gl=D.goal_s, gname='sub '+hm(gl).replace(/:00$/,'');
 $('eyebrow').textContent=`Built for ${D.built_for} · ${gname} · ${D.courses.length} real 70.3 courses`;
-$('h1').innerHTML=`${D.built_for} wants ${gname}.<br><span class="grad">Which 70.3 gives him the best shot?</span>`;
+$('h1').innerHTML=`${D.built_for} wants ${gname.replace(' ','&nbsp;')}.<br><span class="grad">Which 70.3 gives him the best shot?</span>`;
 $('lede').textContent=`Race Card reads a training export and predicts every leg of race day as a range, with an open model running on your own laptop. Then it shows which course, and which leg, closes the gap.`;
 $('whose').textContent=D.athlete===D.built_for?`Predicted from ${D.athlete}'s own export`:`Demo runs on ${D.athlete}'s training, not ${D.built_for}'s. His stays on his laptop.`;
 $('rl').textContent='chance of '+gname;
 D.courses.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${c.name.replace('IRONMAN ','')} · ${c.when}`;$('course').appendChild(o)});
 $('course').onchange=e=>select(+e.target.value);
 function legsHTML(c,s){const tot=c.legs.reduce((a,l)=>a+l.median_s,0);
- return c.legs.map(l=>{const f=l.median_s/tot,cc=2*Math.PI*15;return `<div class="leg" title="${Math.round(f*100)}% of race time"><div class="lh"><i>${l.sport.toUpperCase()}</i><svg width="26" height="26" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/><circle cx="19" cy="19" r="15" fill="none" stroke="${HEX[l.sport]}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${cc}" stroke-dashoffset="${cc*(1-f)}" style="transition:stroke-dashoffset .9s"/></svg></div><b>${legT(l.sport,l.median_s)}</b><i>${l.km} km · ${legT(l.sport,l.lo_s)}–${legT(l.sport,l.hi_s)}</i></div>`}).join('')}
+ return c.legs.map(l=>{const f=l.median_s/tot,cc=2*Math.PI*15;return `<div class="leg" title="${Math.round(f*100)}% of race time"><div class="lh"><i>${l.sport.toUpperCase()}</i><svg width="26" height="26" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/><circle cx="19" cy="19" r="15" fill="none" stroke="${HEX[l.sport]}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${cc}" stroke-dashoffset="${cc*(1-f)}" style="transition:stroke-dashoffset .9s"/></svg></div><b>${legT(l.sport,l.median_s)}</b><i>${legT(l.sport,l.lo_s)}–${legT(l.sport,l.hi_s)}</i></div>`}).join('')}
 function sliders(){$('sliders').innerHTML=['Swim','Bike','Run'].map((n,i)=>`<div class="row"><span>${n}</span><input type="range" min="0" max="8" step="0.5" value="${gains[i]*100}" data-i="${i}" style="--c:${COL[n.toLowerCase()]}" aria-label="${n} speed improvement"><span class="v" id="v${i}"></span></div>`).join('');
  document.querySelectorAll('input[type=range]').forEach(r=>{const upd=()=>{r.style.setProperty('--p',(r.value/8*100)+'%');gains[+r.dataset.i]=r.value/100;update(false)};r.oninput=upd;upd()})}
 function hist(s){const lo=D.goal_s-45*60,hi=D.goal_s+45*60,B=60,bins=new Array(B).fill(0);for(const v of s){const b=Math.floor((v-lo)/(hi-lo)*B);if(b>=0&&b<B)bins[b]++}
@@ -237,12 +251,29 @@ $('clist').innerHTML=D.courses.map((c,i)=>`<div class="course" data-i="${i}"><di
 document.querySelectorAll('.course').forEach(e=>e.onclick=()=>{select(+e.dataset.i);scrollTo({top:0,behavior:'smooth'})});
 const bt=D.backtest;
 if(bt.length){const ins=bt.filter(r=>r.inside_80).length,mae=bt.reduce((a,r)=>a+Math.abs(r.error_pct),0)/bt.length;
- $('bth2').textContent=`${ins} of ${bt.length} past race legs landed inside the range. Typical miss: ${mae.toFixed(1)}%.`;
- $('bt').innerHTML=bt.map(r=>{const lo=Math.min(r.lo_s,r.actual_s)*.97,hi=Math.max(r.hi_s,r.actual_s)*1.03,p=v=>((v-lo)/(hi-lo)*100).toFixed(1);
- return `<div class="btc"><div class="top"><span>${r.date}</span><span style="color:${HEX[r.sport]}">${r.sport.toUpperCase()}</span></div><div class="nm">${r.name.replace(/</g,'&lt;')}</div><div class="track"><div class="ax"></div><div class="r" style="left:${p(r.lo_s)}%;width:${p(r.hi_s)-p(r.lo_s)}%"></div><div class="pm" style="left:${p(r.pred_s)}%"></div><div class="a" style="left:${p(r.actual_s)}%"></div></div><div class="res"><span>pred ${legT(r.sport,r.pred_s)} · real ${legT(r.sport,r.actual_s)}</span><span class="${r.inside_80?'in':'out'}">${r.error_pct>0?'+':''}${r.error_pct}%</span></div></div>`}).join('')}
+ $('bth2').textContent=`${ins} of ${bt.length} past race legs landed inside the 80% range. Typical miss: ${mae.toFixed(1)}%.`;
+ $('btn').textContent=bt.length;
+ const days={};bt.forEach(r=>{(days[r.date]=days[r.date]||[]).push(r)});
+ const key=(D.courses.find(c=>c.id==='weymouth')||D.courses[0]).name.replace('IRONMAN 70.3 ','').toLowerCase();
+ let pick=Object.entries(days).filter(([d,rs])=>rs.length>=3&&rs.some(r=>r.name.toLowerCase().includes(key)));
+ let title=`${key[0].toUpperCase()+key.slice(1)}, ${pick.length} times`;
+ if(pick.length<2){pick=Object.entries(days).filter(([d,rs])=>rs.length>=3).slice(-3);title='The last three middle-distance races'}
+ $('wey').innerHTML=pick.slice(-3).map(([d,rs])=>{const P=rs.reduce((a,r)=>a+r.pred_s,0),A=rs.reduce((a,r)=>a+r.actual_s,0),e=(P-A)/A*100;
+  return `<div class="wy"><div class="yr">${d.slice(0,4)} · ${rs[0].name.replace(/\s*-?\s*(swim|bike|run).*$/i,'').trim().toUpperCase()}</div><div class="t"><b>${hm(A)}</b><span>real · predicted ${hm(P)} · ${e>0?'+':''}${e.toFixed(1)}%</span></div>
+  ${rs.sort((a,b)=>['swim','bike','run'].indexOf(a.sport)-['swim','bike','run'].indexOf(b.sport)).map(r=>`<div class="lg"><span style="color:${HEX[r.sport]}">${r.sport.toUpperCase()}</span><span>pred ${legT(r.sport,r.pred_s)}</span><span>real ${legT(r.sport,r.actual_s)}</span><span class="${r.inside_80?'in':'out'}" style="text-align:right">${r.error_pct>0?'+':''}${r.error_pct}%</span></div>`).join('')}</div>`}).join('');
+ $('wey').insertAdjacentHTML('beforebegin',`<div class="sh" style="margin-top:26px">${title} · each predicted from only the training before it · leg times, transitions excluded</div>`);
+ const pb=pick.slice(-3).map(([d,rs])=>rs.find(r=>r.sport==='bike')).filter(Boolean);
+ if(pb.length>=2&&pb.every(r=>r.error_pct<0)){const lo=Math.min(...pb.map(r=>-r.error_pct)),hi=Math.max(...pb.map(r=>-r.error_pct));
+  $('wey').insertAdjacentHTML('afterend',`<p class="sub" style="margin-top:12px">The bike was the miss every time: predicted too fast by ${lo.toFixed(0)} to ${hi.toFixed(0)}%. The model knows how much a course climbs, not how it rides on the day, so treat the hilly courses' bike numbers as optimistic.</p>`)}
+ const lanes={swim:40,bike:85,run:130},X=e=>530+Math.max(-30,Math.min(30,e))/30*450;let c=`<rect x="${X(-10)}" y="10" width="${X(10)-X(-10)}" height="150" rx="10" fill="rgba(255,255,255,.035)"/><line x1="530" x2="530" y1="8" y2="162" stroke="rgba(255,255,255,.25)" stroke-dasharray="3 4"/>`;
+ ['swim','bike','run'].forEach(sp=>c+=`<text x="4" y="${lanes[sp]+4}" fill="${HEX[sp]}" font-family="Geist Mono" font-size="11">${sp.toUpperCase()}</text>`);
+ bt.forEach((r,i)=>{const y=lanes[r.sport]+((i*37)%17-8);c+=`<circle class="cd" cx="${X(r.error_pct)}" cy="${y}" r="6" fill="${r.inside_80?HEX[r.sport]:'none'}" stroke="${HEX[r.sport]}" stroke-width="2" opacity="0" style="transition:opacity .5s ${i*15}ms"><title>${r.date} ${r.name.replace(/</g,'')} · ${r.error_pct}%</title></circle>`});
+ [-30,-20,-10,10,20,30].forEach(v=>c+=`<text x="${X(v)}" y="168" text-anchor="middle" fill="#5c6370" font-family="Geist Mono" font-size="10">${v>0?'+':''}${v}%</text>`);
+ $('cal').innerHTML=c;
+ $('btt').innerHTML='<tr><th>Date</th><th>Race leg</th><th>Predicted</th><th>Actual</th><th>Off by</th><th>80% range</th></tr>'+bt.map(r=>`<tr><td class="mono">${r.date}</td><td>${r.name.replace(/</g,'&lt;')}</td><td class="mono">${legT(r.sport,r.pred_s)}</td><td class="mono">${legT(r.sport,r.actual_s)}</td><td class="mono">${r.error_pct>0?'+':''}${r.error_pct}%</td><td class="${r.inside_80?'in':'out'}">${r.inside_80?'inside':'outside'}</td></tr>`).join('')}
 else{$('bth2').textContent='No past races marked in this export yet.'}
 const W=D.weekly,tot=W.reduce((a,w)=>a+w.swim+w.bike+w.run,0);
-$('big3').innerHTML=[[D.sessions.n,'sessions in the export'],[Math.round(tot),'hours in the last year'],[D.courses[0].legs[1].n_train,'rides the bike model saw']].map(([v,l])=>`<div class="stat"><b data-to="${v}">0</b><span>${l}</span></div>`).join('');
+$('big3').innerHTML=[[D.sessions.n,'sessions in the export'],[Math.round(tot),'hours in the last year'],[D.backtest.length,'race legs checked']].map(([v,l])=>`<div class="stat"><b data-to="${v}">0</b><span>${l}</span></div>`).join('');
 const mx=Math.max(...W.map(w=>w.swim+w.bike+w.run),1),bw=1040/W.length;let hh='';
 W.forEach((w,i)=>{let y=150;['swim','bike','run'].forEach(sp=>{const h=w[sp]/mx*140;y-=h;hh+=`<rect class="hb" x="${i*bw+2}" y="${y}" width="${bw-4}" height="${h}" rx="2" fill="${HEX[sp]}" opacity=".85" style="transform-origin:${i*bw}px 150px;transform:scaleY(0);transition:transform .7s ${i*12}ms cubic-bezier(.2,.8,.2,1)"/>`})});
 $('heart').innerHTML=hh;
@@ -257,7 +288,7 @@ if(D.note){$('note').hidden=false;$('note').innerHTML=`${D.note.text.replace(/</
 sliders();const wi=D.courses.findIndex(c=>c.id==='weymouth');select(wi>=0?wi:0);
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('vis');
  e.target.querySelectorAll('.pbar i').forEach(b=>b.style.width=b.dataset.w+'%');
- e.target.querySelectorAll('.hb').forEach(b=>b.style.transform='scaleY(1)');
+ e.target.querySelectorAll('.cd').forEach(b=>b.style.opacity=1);e.target.querySelectorAll('.hb').forEach(b=>b.style.transform='scaleY(1)');
  e.target.querySelectorAll('[data-to]').forEach(b=>{const to=+b.dataset.to;shown['s'+to]=0;tween('s'+to,to,b,v=>Math.round(v).toLocaleString('en-GB'),1400)});io.unobserve(e.target)}),{threshold:.18});
 document.querySelectorAll('.reveal').forEach(e=>io.observe(e));
 </script>
