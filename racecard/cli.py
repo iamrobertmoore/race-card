@@ -6,7 +6,7 @@ import json
 import webbrowser
 from pathlib import Path
 
-from . import card, explain, ingest, report
+from . import card, explain, gemma, ingest, report
 
 
 def _hm(s: str) -> int:
@@ -31,9 +31,20 @@ def facts_for(data: dict, course_id: str = "weymouth") -> dict:
 def build(export: str, name: str, built_for: str, goal: str, races_file: str | None, out: str,
           backtest: bool = True, use_gemma: bool = True) -> dict:
     sessions = ingest.load(export)
+    race_source = "title keywords"
     if races_file:
-        sessions = ingest.mark_races(sessions, [tuple(x) for x in json.loads(Path(races_file).read_text())])
+        raw = json.loads(Path(races_file).read_text())
+        raw = raw["races"] if isinstance(raw, dict) else raw
+        pairs = [(r["date"], r["name"]) if isinstance(r, dict) else tuple(r) for r in raw]
+        sessions = ingest.mark_races(sessions, pairs)
+        race_source = races_file
+    elif use_gemma and str(export).lower().endswith(".csv") and gemma.ollama_ready():
+        print("Gemma 4 is reading your activity titles to find your races...")
+        found = gemma.find_races(gemma.read_activity_titles(export))
+        sessions = ingest.mark_races(sessions, [(a["date"], a["name"]) for a in found])
+        race_source = "Gemma 4"
     data = report.build(sessions, athlete=name, built_for=built_for, goal_s=_hm(goal), run_backtest=backtest)
+    data["race_source"] = race_source
     if use_gemma:
         f = facts_for(data)
         text, source = explain.note(f)
