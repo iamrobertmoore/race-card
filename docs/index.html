@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Race Card</title>
+<meta name="description" content="A race-day prediction from your own training export, made on your own machine with open models.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05060a;--panel:rgba(255,255,255,.035);--panel2:rgba(255,255,255,.055);--line:rgba(255,255,255,.08);--ink:#f3f5f7;--muted:#8d95a3;--dim:#5c6370;
+--swim:#3ee0ff;--bike:#a46bff;--run:#ff6a3d;--hot:#ff3d77;--good:#7cf0c2}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Geist,ui-sans-serif,system-ui,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.mono{font-family:"Geist Mono",ui-monospace,monospace}
+.bgfx{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:.5;will-change:transform}
+.o1{width:60vw;height:60vw;left:-15vw;top:-25vw;background:radial-gradient(circle,#2b5cff66,transparent 62%);animation:d1 26s ease-in-out infinite alternate}
+.o2{width:55vw;height:55vw;right:-18vw;top:20vh;background:radial-gradient(circle,#a46bff44,transparent 62%);animation:d2 32s ease-in-out infinite alternate}
+.o3{width:50vw;height:50vw;left:20vw;bottom:-30vw;background:radial-gradient(circle,#ff3d7740,transparent 62%);animation:d3 29s ease-in-out infinite alternate}
+@keyframes d1{to{transform:translate(12vw,8vh) scale(1.1)}}@keyframes d2{to{transform:translate(-10vw,-12vh) scale(.9)}}@keyframes d3{to{transform:translate(-8vw,-10vh) scale(1.15)}}
+.grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at 50% 20%,#000 20%,transparent 70%)}
+.grain{position:absolute;inset:-50%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E");animation:gr 1.2s steps(4) infinite}
+@keyframes gr{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+nav{display:flex;justify-content:space-between;align-items:center;padding:22px 0;gap:12px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.06em;font-size:16px}
+.logo i{width:24px;height:24px;border-radius:50%;background:conic-gradient(var(--swim),var(--bike),var(--run),var(--swim));-webkit-mask:radial-gradient(circle,transparent 6.5px,#000 7.5px);mask:radial-gradient(circle,transparent 6.5px,#000 7.5px);animation:spin 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-family:"Geist Mono";font-size:11.5px;letter-spacing:.08em;color:var(--muted);border:1px solid var(--line);padding:7px 12px;border-radius:999px;background:var(--panel);display:inline-flex;gap:8px;align-items:center}
+.pill b{color:var(--ink);font-weight:500}.live{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 10px var(--good);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.hero{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:44px;padding:48px 0 30px;align-items:start}
+.eyebrow{font-family:"Geist Mono";font-size:11.5px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+h1{font-size:clamp(40px,5vw,58px);line-height:1.02;letter-spacing:-.045em;font-weight:700;margin:16px 0 18px}
+.grad{background:linear-gradient(90deg,var(--swim),var(--bike) 50%,var(--run));-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:sheen 8s ease-in-out infinite alternate}
+@keyframes sheen{to{background-position:100% 0}}
+.lede{color:#b9c0cb;font-size:17.5px}
+.cta{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 20px;border-radius:999px;font-weight:600;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--panel);transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-1px);background:var(--panel2)}.btn.p{background:var(--ink);color:#000;border-color:transparent}
+.fine{font-family:"Geist Mono";font-size:11px;color:var(--dim);margin-top:16px;letter-spacing:.05em;text-transform:uppercase}
+.dash{display:grid;grid-template-columns:290px minmax(0,1fr);gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:20px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);min-width:0;position:relative;overflow:hidden}
+.panel::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,rgba(255,255,255,.14),transparent 40%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.ringbox{position:relative;width:236px;height:236px;margin:4px auto 0}
+.ringbox svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.halo{position:absolute;inset:-18px;border-radius:50%;background:conic-gradient(from 0deg,transparent,#a46bff33,transparent 30%,#ff3d7733,transparent 60%);filter:blur(16px);animation:spin 14s linear infinite}
+.ringc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.pct{font-size:76px;font-weight:800;letter-spacing:-.06em;line-height:1;font-variant-numeric:tabular-nums}
+.pct small{font-size:30px;letter-spacing:-.02em}
+.rl{font-family:"Geist Mono";font-size:10.5px;letter-spacing:.16em;color:var(--muted);margin-top:8px;text-transform:uppercase}
+select{appearance:none;width:100%;margin-top:14px;background:var(--panel2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238d95a3' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center;color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:11px 36px 11px 14px;font:500 14px Geist,sans-serif;cursor:pointer}
+.cmeta{font-family:"Geist Mono";font-size:11px;color:var(--muted);margin-top:10px;text-align:center;letter-spacing:.04em}
+.t3{display:grid;grid-template-columns:minmax(0,1fr) 54px 38px;gap:10px;align-items:center;font-size:13px;margin:8px 0;cursor:pointer}.t3 .pbar{height:6px}.t3 span:last-child{font-family:'Geist Mono';text-align:right}.t3:hover{color:#fff}
+.fin{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.time{font-size:clamp(48px,6vw,64px);font-weight:700;letter-spacing:-.05em;line-height:1;font-variant-numeric:tabular-nums}
+.rng{font-family:"Geist Mono";font-size:12px;color:var(--muted);text-align:right;line-height:1.5}
+.hist{width:100%;height:96px;margin:14px 0 2px;display:block}
+.ticks{display:flex;justify-content:space-between;font-family:"Geist Mono";font-size:10.5px;color:var(--dim)}
+.legs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.leg{border:1px solid var(--line);border-radius:16px;padding:12px 13px;background:rgba(255,255,255,.02);min-width:0}
+.leg .lh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.leg svg{flex:none;transform:rotate(-90deg)}
+.leg b{margin-top:6px}
+.leg b{display:block;font-size:21px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.leg i{font-style:normal;font-family:"Geist Mono";font-size:10.5px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lev{margin-top:16px}
+.lev h3,.sh{font-family:"Geist Mono";font-weight:500;font-size:11px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) 112px;gap:12px;align-items:center;margin:12px 0;font-size:14px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--c) var(--p,0%),rgba(255,255,255,.08) var(--p,0%));outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 14px #fff9;border:0}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 14px #fff9}
+.row .v{font-family:"Geist Mono";font-size:12.5px;text-align:right;white-space:nowrap}
+.row .v b{color:var(--ink)}
+.note{margin-top:14px;border-left:2px solid var(--hot);padding:2px 0 2px 12px;color:#d5dae2;font-size:14.5px}
+.note small{display:block;font-family:"Geist Mono";font-size:10.5px;color:var(--dim);margin-top:6px;letter-spacing:.04em}
+section.s{padding:56px 0 8px}
+h2{font-size:clamp(28px,3.4vw,38px);letter-spacing:-.04em;line-height:1.08;margin:10px 0 10px;font-weight:700}
+.sub{color:#aeb5c1;max-width:640px}
+.courses{display:grid;gap:8px;margin-top:22px}
+.course{display:grid;grid-template-columns:minmax(0,1.3fr) 110px minmax(0,1fr) 64px;gap:16px;align-items:center;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+.course:hover{background:var(--panel2);transform:translateX(3px)}.course.on{border-color:rgba(255,255,255,.28);background:var(--panel2)}
+.course .n{font-weight:600}.course .n small{display:block;font-family:"Geist Mono";font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.03em}
+.course .el{font-family:"Geist Mono";font-size:12px;color:var(--muted)}
+.pbar{height:8px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}.pbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--bike),var(--hot));width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.course .pp{font-family:"Geist Mono";text-align:right;font-weight:600}
+.wey{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.wy{border:1px solid var(--line);border-radius:20px;padding:18px;background:var(--panel);position:relative;overflow:hidden}
+.wy .yr{font-family:"Geist Mono";font-size:11px;color:var(--muted);letter-spacing:.12em}
+.wy .t{display:flex;align-items:baseline;gap:10px;margin:8px 0 4px}.wy .t b{font-size:38px;letter-spacing:-.05em}.wy .t span{font-family:"Geist Mono";font-size:12px;color:var(--muted)}
+.wy .lg{display:grid;grid-template-columns:44px 1fr 1fr 56px;gap:6px;font-family:"Geist Mono";font-size:11.5px;color:#c9cfd8;margin-top:6px}
+.cal{width:100%;height:170px;display:block;margin-top:12px}
+details.all{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:12px 16px}
+details.all summary{cursor:pointer;font-family:"Geist Mono";font-size:12px;color:var(--muted);letter-spacing:.06em}
+.btt{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}.btt td,.btt th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.btt th{color:var(--muted);font-weight:500}
+@media (max-width:980px){.wey{grid-template-columns:minmax(0,1fr)}}
+.bt{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:22px}
+.btc{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--panel)}
+.btc .top{display:flex;justify-content:space-between;font-family:"Geist Mono";font-size:11px;color:var(--muted)}
+.btc .nm{font-weight:600;margin:6px 0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{position:relative;height:30px}.track .ax{position:absolute;left:0;right:0;top:14px;height:2px;background:var(--line)}
+.track .r{position:absolute;top:8px;height:14px;border-radius:7px;background:rgba(164,107,255,.35)}
+.track .a{position:absolute;top:5px;width:2px;height:20px;background:#fff}.track .pm{position:absolute;top:9px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--bike)}
+.btc .res{display:flex;justify-content:space-between;font-family:"Geist Mono";font-size:12px;margin-top:6px}
+.in{color:var(--good)}.out{color:var(--hot)}
+.big3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.stat{border:1px solid var(--line);border-radius:18px;padding:18px;background:var(--panel)}
+.stat b{display:block;font-size:40px;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.stat span{font-family:"Geist Mono";font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.heart{width:100%;height:150px;display:block;margin-top:18px}
+.why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.why div{border:1px solid var(--line);border-radius:18px;padding:18px;background:var(--panel)}
+.why h4{font-size:16px;margin-bottom:6px}.why p{color:#aeb5c1;font-size:14.5px}
+footer{padding:60px 0 50px;color:var(--dim);font-size:13px}
+footer li{margin:4px 0 4px 18px}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}.reveal.vis{opacity:1;transform:none}
+@media (max-width:980px){.hero{grid-template-columns:minmax(0,1fr)}.dash{grid-template-columns:minmax(0,1fr)}.big3,.why{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:620px){h1{font-size:36px}.lede{font-size:16px}.pills .pill:last-child{display:none}.hero{padding-top:18px;gap:26px}.ringbox{transform:scale(.9)}.legs{grid-template-columns:1fr}.course{grid-template-columns:minmax(0,1fr) 60px}.course .el,.course .pbar{display:none}.row{grid-template-columns:40px minmax(0,1fr) 96px;gap:8px}}
+@media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="bgfx"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="grid"></div><div class="grain"></div></div>
+<div class="wrap">
+<nav><div class="logo"><i></i>RACE CARD</div><div class="pills"><span class="pill"><span class="live"></span>ON-DEVICE · <b>TabPFN</b> + <b>Gemma 4</b></span><span class="pill">0 BYTES UPLOADED</span></div></nav>
+
+<header class="hero">
+<div>
+<div class="eyebrow" id="eyebrow"></div>
+<h1 id="h1"></h1>
+<p class="lede" id="lede"></p>
+<div class="cta"><a class="btn p" href="#courses">Every course, ranked</a><a class="btn" href="#yours">Run it on your data</a></div>
+<p class="fine" id="whose"></p>
+</div>
+<div class="dash">
+<div class="panel">
+<div class="ringbox"><div class="halo"></div>
+<svg viewBox="0 0 236 236" width="236" height="236"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a46bff"/><stop offset=".6" stop-color="#ff3d77"/><stop offset="1" stop-color="#ff6a3d"/></linearGradient>
+<filter id="gl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<circle cx="118" cy="118" r="100" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="16"/>
+<circle id="ring" cx="118" cy="118" r="100" fill="none" stroke="url(#rg)" stroke-width="16" stroke-linecap="round" stroke-dasharray="628.3" stroke-dashoffset="628.3" filter="url(#gl)" style="transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)"/></svg>
+<div class="ringc"><div class="pct"><span id="pct">0</span><small>%</small></div><div class="rl" id="rl"></div></div></div>
+<select id="course" aria-label="Choose a race"></select>
+<div class="cmeta" id="cmeta"></div>
+<div class="mini3"><div class="sh" style="margin:18px 0 10px">Best shots</div><div id="top3"></div></div>
+</div>
+<div class="panel">
+<div class="eyebrow">Predicted finish · if the race were tomorrow</div>
+<div class="fin"><div class="time" id="time">0:00</div><div class="rng" id="rng"></div></div>
+<div style="position:relative"><div id="glab" class="mono" style="position:absolute;top:12px;font-size:10.5px;color:var(--hot);letter-spacing:.08em;pointer-events:none"></div><svg class="hist" id="hist" viewBox="0 0 600 96" preserveAspectRatio="none" role="img" aria-label="Spread of predicted finish times"></svg></div>
+<div class="ticks" id="ticks"></div>
+<div class="legs" id="legs"></div>
+<div class="lev"><h3>What closes the gap · drag to try</h3><div id="sliders"></div></div>
+<div class="note" id="note" hidden></div>
+</div>
+</div>
+</header>
+
+<section class="s reveal" id="courses">
+<div class="eyebrow">Every course, ranked</div>
+<h2 id="ch2"></h2>
+<p class="sub">Same fitness, eight real IRONMAN 70.3 courses. The model sees each course's climbing, so the hilly ones cost more on the bike. Tap one to load it above.</p>
+<div class="courses" id="clist"></div>
+</section>
+
+<section class="s reveal" id="check">
+<div class="eyebrow">Checked before trusted</div>
+<h2 id="bth2"></h2>
+<p class="sub">Before trusting it with anyone else's race, I made it predict mine. Every past race leg was predicted using only the training logged before that day, then compared with what actually happened. Filled dots landed inside the 80% range.</p>
+<div class="wey" id="wey"></div>
+<div class="panel" style="margin-top:14px"><div class="sh">Every checked leg · how far off the prediction was</div>
+<svg class="cal" id="cal" viewBox="0 0 1000 170" role="img" aria-label="Prediction error for every past race leg"></svg>
+<div class="ticks"><span>prediction too fast</span><span>spot on</span><span>prediction too slow</span></div></div>
+<details class="all"><summary>See all <span id="btn"></span> legs</summary><div style="overflow-x:auto"><table class="btt" id="btt"></table></div></details>
+</section>
+
+<section class="s reveal">
+<div class="eyebrow">What it learned from</div>
+<h2>A year of training, in one strip.</h2>
+<div class="big3" id="big3"></div>
+<svg class="heart" id="heart" viewBox="0 0 1040 150" preserveAspectRatio="none" role="img" aria-label="Weekly training hours for the last 52 weeks"></svg>
+<div class="ticks"><span>52 weeks ago</span><span><span style="color:var(--swim)">■</span> swim &nbsp;<span style="color:var(--bike)">■</span> bike &nbsp;<span style="color:var(--run)">■</span> run</span><span>this week</span></div>
+</section>
+
+<section class="s reveal" id="yours">
+<div class="eyebrow">Why it runs on your laptop</div>
+<h2>Your training is yours.</h2>
+<div class="why">
+<div><h4>Nothing leaves the machine</h4><p>Heart rate, GPS and every session you've logged are health and location data. Race Card reads your Strava or Garmin export and never sends it anywhere.</p></div>
+<div><h4>Open models, no account</h4><p>TabPFN v2 is an open tabular foundation model that runs on a laptop CPU in seconds. Gemma 4 writes the note through Ollama, offline.</p></div>
+<div><h4>Run it yourself</h4><p class="mono" style="font-size:12.5px;color:#d5dae2;overflow-wrap:anywhere">pip install git+https://github.com/iamrobertmoore/race-card<br>racecard your-strava-export.zip --name You --goal 5:00</p></div>
+</div>
+</section>
+
+<footer class="wrap" style="padding-left:0;padding-right:0">
+<div class="sh" style="margin-bottom:10px">What this is not</div>
+<ul id="limits"></ul>
+<p style="margin-top:18px" id="gen"></p>
+</footer>
+</div>
+
+<script id="data" type="application/json">{"athlete":"Robert","built_for":"Sam","goal_s":18000,"ref":"2026-10-03","generated":"2026-10-02 11:48","levels":[0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95],"transitions_s":420,"sessions":{"n":4484,"first":"2012-04-01","last":"2026-10-02","by_sport":{"bike":2193,"run":1492,"swim":799}},"weekly":[{"swim":0.0,"bike":0.0,"run":1.99},{"swim":0.0,"bike":0.0,"run":0.0},{"swim":0.0,"bike":1.01,"run":0.79},{"swim":0.0,"bike":0.0,"run":0.34},{"swim":0.0,"bike":0.0,"run":0.0},{"swim":0.0,"bike":1.02,"run":2.82},{"swim":0.0,"bike":0.0,"run":2.33},{"swim":0.0,"bike":1.28,"run":0.82},{"swim":0.0,"bike":2.59,"run":1.89},{"swim":0.0,"bike":0.0,"run":2.52},{"swim":0.0,"bike":3.01,"run":0.91},{"swim":0.0,"bike":0.0,"run":1.29},{"swim":0.0,"bike":1.01,"run":1.12},{"swim":0.0,"bike":4.5,"run":0.68},{"swim":0.0,"bike":2.26,"run":1.91},{"swim":0.0,"bike":4.66,"run":2.08},{"swim":0.0,"bike":3.52,"run":0.79},{"swim":0.0,"bike":0.0,"run":1.35},{"swim":0.0,"bike":3.01,"run":2.5},{"swim":0.0,"bike":2.08,"run":2.34},{"swim":0.0,"bike":2.86,"run":2.94},{"swim":0.0,"bike":3.36,"run":2.24},{"swim":0.0,"bike":3.94,"run":1.73},{"swim":0.0,"bike":1.23,"run":2.43},{"swim":0.0,"bike":3.53,"run":2.37},{"swim":0.0,"bike":1.01,"run":2.95},{"swim":0.0,"bike":1.52,"run":0.77},{"swim":0.0,"bike":0.0,"run":3.31},{"swim":0.0,"bike":5.12,"run":1.69},{"swim":0.0,"bike":3.26,"run":2.71},{"swim":0.0,"bike":5.47,"run":2.57},{"swim":0.0,"bike":3.21,"run":1.85},{"swim":0.4,"bike":2.48,"run":1.62},{"swim":0.44,"bike":3.51,"run":0.84},{"swim":0.0,"bike":4.83,"run":2.24},{"swim":0.0,"bike":4.02,"run":2.2},{"swim":0.0,"bike":2.47,"run":1.19},{"swim":0.43,"bike":0.0,"run":2.74},{"swim":0.29,"bike":3.79,"run":1.07},{"swim":0.0,"bike":1.04,"run":2.44},{"swim":0.0,"bike":4.2,"run":0.84},{"swim":0.0,"bike":2.01,"run":1.32},{"swim":0.59,"bike":2.92,"run":1.43},{"swim":0.0,"bike":1.11,"run":0.82},{"swim":0.0,"bike":2.18,"run":2.24},{"swim":0.0,"bike":1.2,"run":1.4},{"swim":0.16,"bike":0.68,"run":1.02},{"swim":0.0,"bike":0.0,"run":1.59},{"swim":0.0,"bike":0.0,"run":0.71},{"swim":0.0,"bike":1.01,"run":1.31},{"swim":1.22,"bike":0.84,"run":1.87},{"swim":1.08,"bike":1.95,"run":1.52}],"courses":[{"id":"erkner","name":"IRONMAN 70.3 Erkner","where":"Germany","when":"Sep 2027","swim":"lake","bike_m":129,"run_m":65,"run_known":true,"src":"finishers.com","legs":[{"sport":"swim","km":1.9,"kmh_q":[3.4741,3.573,3.6217,3.6554,3.6832,3.707,3.728,3.7477,3.7671,3.787,3.807,3.8275,3.8495,3.8729,3.8995,3.9295,3.9646,4.0085,4.0974],"n_train":799,"median_s":1806,"lo_s":1706,"hi_s":1914},{"sport":"bike","km":90.0,"kmh_q":[29.2642,31.1878,31.946,32.4447,32.8435,33.1803,33.496,33.8001,34.113,34.4373,34.7767,35.133,35.4772,35.7927,36.1057,36.439,36.783,37.1801,37.7434],"n_train":1000,"median_s":9408,"lo_s":8714,"hi_s":10389},{"sport":"run","km":21.1,"kmh_q":[12.1742,12.4479,12.6277,12.7795,12.9152,13.0416,13.1566,13.2753,13.4011,13.5462,13.7054,13.8695,14.0197,14.1648,14.3116,14.4597,14.6089,14.7841,15.0563],"n_train":1000,"median_s":5607,"lo_s":5138,"hi_s":6102}],"p_goal":0.8638,"median_s":17242,"lo_s":16492,"hi_s":18136},{"id":"la-quinta","name":"IRONMAN 70.3 La Quinta","where":"California, USA","when":"6 Dec 2026","swim":"lake","bike_m":166,"run_m":0,"run_known":false,"src":"IM route 3313979455385330672","legs":[{"sport":"swim","km":1.9,"kmh_q":[3.4741,3.573,3.6217,3.6554,3.6832,3.707,3.728,3.7477,3.7671,3.787,3.807,3.8275,3.8495,3.8729,3.8995,3.9295,3.9646,4.0085,4.0974],"n_train":799,"median_s":1806,"lo_s":1706,"hi_s":1914},{"sport":"bike","km":90.0,"kmh_q":[29.9234,31.4173,32.0482,32.4905,32.8509,33.1638,33.4636,33.759,34.0679,34.3909,34.7303,35.0798,35.4119,35.7104,35.9931,36.2991,36.6237,36.9985,37.5173],"n_train":1000,"median_s":9421,"lo_s":8757,"hi_s":10313},{"sport":"run","km":21.1,"kmh_q":[12.0252,12.329,12.5287,12.6891,12.8412,12.9808,13.1126,13.2388,13.3696,13.5202,13.6853,13.8593,14.0199,14.1769,14.3356,14.496,14.6564,14.8545,15.1668],"n_train":1000,"median_s":5618,"lo_s":5114,"hi_s":6161}],"p_goal":0.8619,"median_s":17271,"lo_s":16513,"hi_s":18122},{"id":"turkiye","name":"IRONMAN 70.3 Türkiye","where":"Belek, Türkiye","when":"1 Nov 2026","swim":"sea","bike_m":115,"run_m":0,"run_known":false,"src":"IM route 3327306152809908766","legs":[{"sport":"swim","km":1.9,"kmh_q":[3.4741,3.573,3.6217,3.6554,3.6832,3.707,3.728,3.7477,3.7671,3.787,3.807,3.8275,3.8495,3.8729,3.8995,3.9295,3.9646,4.0085,4.0974],"n_train":799,"median_s":1806,"lo_s":1706,"hi_s":1914},{"sport":"bike","km":90.0,"kmh_q":[29.1057,31.1362,31.9221,32.4314,32.8377,33.1798,33.5012,33.8107,34.1278,34.4537,34.7934,35.1502,35.4961,35.8169,36.1408,36.484,36.8433,37.254,37.8313],"n_train":1000,"median_s":9404,"lo_s":8697,"hi_s":10406},{"sport":"run","km":21.1,"kmh_q":[12.0252,12.329,12.5287,12.6891,12.8412,12.9808,13.1126,13.2388,13.3696,13.5202,13.6853,13.8593,14.0199,14.1769,14.3356,14.496,14.6564,14.8545,15.1668],"n_train":1000,"median_s":5618,"lo_s":5114,"hi_s":6161}],"p_goal":0.8534,"median_s":17252,"lo_s":16471,"hi_s":18175},{"id":"westfriesland","name":"IRONMAN 70.3 Westfriesland","where":"Netherlands","when":"20 Jun 2027","swim":"lake","bike_m":55,"run_m":0,"run_known":false,"src":"IM route 3326512018760900022","legs":[{"sport":"swim","km":1.9,"kmh_q":[3.4741,3.573,3.6217,3.6554,3.6832,3.707,3.728,3.7477,3.7671,3.787,3.807,3.8275,3.8495,3.8729,3.8995,3.9295,3.9646,4.0085,4.0974],"n_train":799,"median_s":1806,"lo_s":1706,"hi_s":1914},{"sport":"bike","km":90.0,"kmh_q":[28.6583,30.9037,31.8035,32.377,32.8318,33.2117,33.5673,33.8999,34.2306,34.5593,34.8992,35.2654,35.6274,35.984,36.3592,36.7298,37.1205,37.5622,38.2366],"n_train":1000,"median_s":9375,"lo_s":8626,"hi_s":10484},{"sport":"run","km":21.1,"kmh_q":[12.0252,12.329,12.5287,12.6891,12.8412,12.9808,13.1126,13.2388,13.3696,13.5202,13.6853,13.8593,14.0199,14.1769,14.3356,14.496,14.6564,14.8545,15.1668],"n_train":1000,"median_s":5618,"lo_s":5114,"hi_s":6161}],"p_goal":0.8491,"median_s":17224,"lo_s":16418,"hi_s":18208},{"id":"cascais","name":"IRONMAN 70.3 Portugal-Cascais","where":"Portugal","when":"17 Oct 2026","swim":"sea","bike_m":771,"run_m":141,"run_known":true,"src":"IM routes 3340350705873445894, 3333094951988521874","legs":[{"sport":"swim","km":1.9,"kmh_q":[3.4741,3.573,3.6217,3.6554,3.6832,3.707,3.728,3.7477,3.7671,3.787,3.807,3.8275,3.8495,3.8729,3.8995,3.9295,3.9646,4.0085,4.0974],"n_train":799,"median_s":1806,"lo_s":1706,"hi_s":1914},{"sport":"bike","km":90.0,"kmh_q":[27.5658,29.0483,29.9554,30.5018,30.9003,31.216,31.4855,31.7315,31.9758,32.2216,32.4796,32.7557,33.0478,33.3694,33.7312,34.1311,34.5506,35.0088,35.5568],"n_train":1000,"median_s":10055,"lo_s":9255,"hi_s":11154},{"sport":"run","km":21.1,"kmh_q":[12.2014,12.4855,12.6748,12.8402,12.9847,13.1163,13.2429,13.3722,13.5208,13.6794,13.842,13.9895,14.1295,14.2675,14.4045,14.5406,14.6816,14.8587,15.1356],"n_train":1000,"median_s":5553,"lo_s":5112,"hi_s":6084}],"p_goal":0.5894,"median_s":17843,"lo_s":17062,"hi_s":18774},{"id":"mallorca","name":"IRONMAN 70.3 Alcúdia-Mallorca","where":"Spain","when":"8 May 2027","swim":"sea","bike_m":882,"run_m":0,"run_known":false,"src":"IM route 3314355818279989220","legs":[{"sport":"swim","km":1.9,"kmh_q":[3.4741,3.573,3.6217,3.6554,3.6832,3.707,3.728,3.7477,3.7671,3.787,3.807,3.8275,3.8495,3.8729,3.8995,3.9295,3.9646,4.0085,4.0974],"n_train":799,"median_s":1806,"lo_s":1706,"hi_s":1914},{"sport":"bike","km":90.0,"kmh_q":[26.6094,28.118,28.9922,29.6732,30.1714,30.5638,30.8992,31.1901,31.4557,31.7058,31.9538,32.1983,32.4464,32.7058,32.9824,33.3069,33.7242,34.2816,35.074],"n_train":1000,"median_s":10219,"lo_s":9451,"hi_s":11523},{"sport":"run","km":21.1,"kmh_q":[12.0252,12.329,12.5287,12.6891,12.8412,12.9808,13.1126,13.2388,13.3696,13.5202,13.6853,13.8593,14.0199,14.1769,14.3356,14.496,14.6564,14.8545,15.1668],"n_train":1000,"median_s":5618,"lo_s":5114,"hi_s":6161}],"p_goal":0.4485,"median_s":18087,"lo_s":17295,"hi_s":19156},{"id":"weymouth","name":"IRONMAN 70.3 Weymouth","where":"UK","when":"12 Sep 2027","swim":"sea","bike_m":1043,"run_m":24,"run_known":true,"src":"IM route 3311384455140007166; finishers.com","legs":[{"sport":"swim","km":1.9,"kmh_q":[3.4741,3.573,3.6217,3.6554,3.6832,3.707,3.728,3.7477,3.7671,3.787,3.807,3.8275,3.8495,3.8729,3.8995,3.9295,3.9646,4.0085,4.0974],"n_train":799,"median_s":1806,"lo_s":1706,"hi_s":1914},{"sport":"bike","km":90.0,"kmh_q":[25.5194,27.1525,28.047,28.6623,29.1826,29.6365,30.0167,30.3428,30.6364,30.9083,31.163,31.4135,31.6617,31.9173,32.1847,32.47,32.8048,33.254,34.0761],"n_train":1000,"median_s":10483,"lo_s":9743,"hi_s":11933},{"sport":"run","km":21.1,"kmh_q":[12.1615,12.4524,12.6409,12.8014,12.9424,13.0738,13.1944,13.3182,13.4584,13.6115,13.7754,13.9352,14.0822,14.2262,14.3706,14.5138,14.6593,14.8376,15.1147],"n_train":1000,"median_s":5581,"lo_s":5119,"hi_s":6100}],"p_goal":0.3108,"median_s":18329,"lo_s":17540,"hi_s":19507},{"id":"swansea","name":"IRONMAN 70.3 Swansea","where":"UK","when":"11 Jul 2027","swim":"sea dock","bike_m":1106,"run_m":0,"run_known":false,"src":"IM route 3311387332027418870","legs":[{"sport":"swim","km":1.9,"kmh_q":[3.4741,3.573,3.6217,3.6554,3.6832,3.707,3.728,3.7477,3.7671,3.787,3.807,3.8275,3.8495,3.8729,3.8995,3.9295,3.9646,4.0085,4.0974],"n_train":799,"median_s":1806,"lo_s":1706,"hi_s":1914},{"sport":"bike","km":90.0,"kmh_q":[25.1145,26.8148,27.7532,28.363,28.8539,29.2887,29.6724,30.0033,30.296,30.5649,30.8228,31.0646,31.3125,31.5671,31.8422,32.1464,32.4892,32.9355,33.7165],"n_train":1000,"median_s":10600,"lo_s":9837,"hi_s":12083},{"sport":"run","km":21.1,"kmh_q":[12.0252,12.329,12.5287,12.6891,12.8412,12.9808,13.1126,13.2388,13.3696,13.5202,13.6853,13.8593,14.0199,14.1769,14.3356,14.496,14.6564,14.8545,15.1668],"n_train":1000,"median_s":5618,"lo_s":5114,"hi_s":6161}],"p_goal":0.2404,"median_s":18481,"lo_s":17658,"hi_s":19677}],"backtest":[{"date":"2014-09-28","name":"Ealing Half Marathon","sport":"run","distance_km":21.37,"actual_s":6403,"pred_s":6448,"lo_s":5519,"hi_s":7824,"error_pct":0.7,"inside_80":true,"n_train":92},{"date":"2015-05-31","name":"Outlaw Half - Swim","sport":"swim","distance_km":1.98,"actual_s":1825,"pred_s":2081,"lo_s":1512,"hi_s":4065,"error_pct":14.0,"inside_80":true,"n_train":59},{"date":"2015-05-31","name":"Outlaw Half - Bike","sport":"bike","distance_km":91.21,"actual_s":10128,"pred_s":12495,"lo_s":10026,"hi_s":15744,"error_pct":23.4,"inside_80":true,"n_train":445},{"date":"2015-05-31","name":"Outlaw Half - Run","sport":"run","distance_km":20.88,"actual_s":7221,"pred_s":5679,"lo_s":5035,"hi_s":6502,"error_pct":-21.4,"inside_80":false,"n_train":159},{"date":"2015-06-14","name":"Ironman 70.3 Staffordshire - swim","sport":"swim","distance_km":1.95,"actual_s":1952,"pred_s":1830,"lo_s":1616,"hi_s":2156,"error_pct":-6.3,"inside_80":true,"n_train":64},{"date":"2015-06-14","name":"Ironman 70.3 Staffordshire - Bike","sport":"bike","distance_km":90.96,"actual_s":10873,"pred_s":10930,"lo_s":9657,"hi_s":13370,"error_pct":0.5,"inside_80":true,"n_train":451},{"date":"2015-06-14","name":"Ironman 70.3 Staffordshire - Run","sport":"run","distance_km":21.17,"actual_s":7382,"pred_s":6451,"lo_s":5772,"hi_s":7346,"error_pct":-12.6,"inside_80":false,"n_train":161},{"date":"2015-08-09","name":"Bournemouth pier to pier","sport":"swim","distance_km":2.3,"actual_s":1925,"pred_s":2222,"lo_s":1928,"hi_s":2692,"error_pct":15.5,"inside_80":false,"n_train":81},{"date":"2015-09-13","name":"Challenge Weymouth run - battery died","sport":"run","distance_km":16.59,"actual_s":5810,"pred_s":5072,"lo_s":4405,"hi_s":5747,"error_pct":-12.7,"inside_80":false,"n_train":186},{"date":"2017-05-21","name":"Outlaw half - swim","sport":"swim","distance_km":1.99,"actual_s":1857,"pred_s":1753,"lo_s":1488,"hi_s":2573,"error_pct":-5.6,"inside_80":true,"n_train":274},{"date":"2017-05-21","name":"Outlaw half - bike","sport":"bike","distance_km":91.18,"actual_s":9425,"pred_s":8908,"lo_s":8527,"hi_s":9548,"error_pct":-5.5,"inside_80":true,"n_train":939},{"date":"2017-05-21","name":"Outlaw half - run","sport":"run","distance_km":21.23,"actual_s":6010,"pred_s":6901,"lo_s":5926,"hi_s":7938,"error_pct":14.8,"inside_80":true,"n_train":356},{"date":"2018-06-10","name":"Ironman 70.3 swim","sport":"swim","distance_km":1.98,"actual_s":1869,"pred_s":1892,"lo_s":1708,"hi_s":2692,"error_pct":1.2,"inside_80":true,"n_train":383},{"date":"2018-06-10","name":"Ironman 70.3 Bike","sport":"bike","distance_km":90.23,"actual_s":9786,"pred_s":9949,"lo_s":9215,"hi_s":11525,"error_pct":1.7,"inside_80":true,"n_train":1000},{"date":"2018-06-10","name":"Ironman 70.3 run","sport":"run","distance_km":20.98,"actual_s":6139,"pred_s":5858,"lo_s":5368,"hi_s":6515,"error_pct":-4.6,"inside_80":true,"n_train":438},{"date":"2018-06-17","name":"Saxon shore half marathon","sport":"run","distance_km":21.14,"actual_s":5532,"pred_s":6102,"lo_s":5734,"hi_s":6522,"error_pct":10.3,"inside_80":false,"n_train":440},{"date":"2018-07-08","name":"Gauntlet Half IM Bike","sport":"bike","distance_km":90.14,"actual_s":11601,"pred_s":10469,"lo_s":9646,"hi_s":11661,"error_pct":-9.8,"inside_80":true,"n_train":1000},{"date":"2018-07-08","name":"Gauntlet Half IM Run","sport":"run","distance_km":21.17,"actual_s":7449,"pred_s":5882,"lo_s":5499,"hi_s":6292,"error_pct":-21.0,"inside_80":false,"n_train":446},{"date":"2018-07-29","name":"Pier to pier - 2nd overall 🥈","sport":"swim","distance_km":2.76,"actual_s":2805,"pred_s":2528,"lo_s":2319,"hi_s":2833,"error_pct":-9.9,"inside_80":true,"n_train":397},{"date":"2018-08-05","name":"London Triathlon - Swim ","sport":"swim","distance_km":1.51,"actual_s":1367,"pred_s":1448,"lo_s":1306,"hi_s":1897,"error_pct":5.9,"inside_80":true,"n_train":399},{"date":"2018-09-23","name":" Ironman Weymouth 70.3 Swim","sport":"swim","distance_km":1.17,"actual_s":1147,"pred_s":1119,"lo_s":1029,"hi_s":1388,"error_pct":-2.4,"inside_80":true,"n_train":413},{"date":"2018-09-23","name":"Ironman Weymouth 70.3 Bike","sport":"bike","distance_km":90.7,"actual_s":10218,"pred_s":9126,"lo_s":8750,"hi_s":9713,"error_pct":-10.7,"inside_80":false,"n_train":1000},{"date":"2018-09-23","name":" Ironman Weymouth 70.3 Run","sport":"run","distance_km":21.21,"actual_s":6506,"pred_s":6149,"lo_s":5620,"hi_s":7208,"error_pct":-5.5,"inside_80":true,"n_train":468},{"date":"2019-05-19","name":"Outlaw Half Bike","sport":"bike","distance_km":90.81,"actual_s":9209,"pred_s":10003,"lo_s":9310,"hi_s":10745,"error_pct":8.6,"inside_80":false,"n_train":1000},{"date":"2019-05-19","name":"Outlaw Half Run","sport":"run","distance_km":21.24,"actual_s":6096,"pred_s":6074,"lo_s":5491,"hi_s":6947,"error_pct":-0.4,"inside_80":true,"n_train":531},{"date":"2019-07-21","name":"Herne bay pier to pier (3k) - 5th overall","sport":"swim","distance_km":2.8,"actual_s":2945,"pred_s":2600,"lo_s":2406,"hi_s":2931,"error_pct":-11.7,"inside_80":false,"n_train":475},{"date":"2019-09-22","name":"IM Weymouth 70.3 Swim","sport":"swim","distance_km":1.14,"actual_s":1047,"pred_s":1125,"lo_s":1018,"hi_s":1600,"error_pct":7.5,"inside_80":true,"n_train":490},{"date":"2019-09-22","name":"IM Weymouth 70.3 Bike","sport":"bike","distance_km":90.49,"actual_s":9876,"pred_s":9185,"lo_s":8482,"hi_s":10437,"error_pct":-7.0,"inside_80":true,"n_train":1000},{"date":"2019-09-22","name":"IM Weymouth 70.3 Run","sport":"run","distance_km":21.27,"actual_s":6358,"pred_s":6026,"lo_s":5551,"hi_s":6799,"error_pct":-5.2,"inside_80":true,"n_train":568},{"date":"2020-09-13","name":"Folkestone Channel Tri - Olympic - Swim","sport":"swim","distance_km":1.4,"actual_s":1519,"pred_s":1360,"lo_s":1254,"hi_s":1563,"error_pct":-10.4,"inside_80":true,"n_train":545},{"date":"2020-09-27","name":"Outlaw X Bike","sport":"bike","distance_km":92.09,"actual_s":9788,"pred_s":9495,"lo_s":8672,"hi_s":10729,"error_pct":-3.0,"inside_80":true,"n_train":1000},{"date":"2020-09-27","name":"Outlaw X Run","sport":"run","distance_km":21.05,"actual_s":6060,"pred_s":5915,"lo_s":5475,"hi_s":6508,"error_pct":-2.4,"inside_80":true,"n_train":690},{"date":"2021-05-30","name":"Bedford Tri Swim","sport":"swim","distance_km":1.11,"actual_s":913,"pred_s":1055,"lo_s":915,"hi_s":1361,"error_pct":15.6,"inside_80":false,"n_train":586},{"date":"2021-06-20","name":"Outlaw Half Bike","sport":"bike","distance_km":89.8,"actual_s":8938,"pred_s":9584,"lo_s":8785,"hi_s":10755,"error_pct":7.2,"inside_80":true,"n_train":1000},{"date":"2021-06-20","name":"Outlaw Half Run / Death March","sport":"run","distance_km":21.46,"actual_s":6110,"pred_s":6206,"lo_s":5622,"hi_s":7250,"error_pct":1.6,"inside_80":true,"n_train":800},{"date":"2021-07-18","name":"Ironman 70.3 staffs swim","sport":"swim","distance_km":2.54,"actual_s":2051,"pred_s":1871,"lo_s":1571,"hi_s":2711,"error_pct":-8.8,"inside_80":true,"n_train":603},{"date":"2021-07-18","name":"Ironman 70.3 staffs bike","sport":"bike","distance_km":90.91,"actual_s":9219,"pred_s":10391,"lo_s":9525,"hi_s":12042,"error_pct":12.7,"inside_80":false,"n_train":1000},{"date":"2021-07-18","name":"Ironman 70.3 staffs run","sport":"run","distance_km":21.67,"actual_s":6310,"pred_s":6172,"lo_s":5868,"hi_s":6617,"error_pct":-2.2,"inside_80":true,"n_train":811},{"date":"2021-07-25","name":"Herne bay pier to pier","sport":"swim","distance_km":2.75,"actual_s":3157,"pred_s":2173,"lo_s":1862,"hi_s":2533,"error_pct":-31.2,"inside_80":false,"n_train":605},{"date":"2021-08-08","name":"London triathlon swim","sport":"swim","distance_km":1.67,"actual_s":1564,"pred_s":1399,"lo_s":1141,"hi_s":1837,"error_pct":-10.6,"inside_80":true,"n_train":611},{"date":"2021-09-05","name":"Shropshire middle distance bike","sport":"bike","distance_km":77.01,"actual_s":7588,"pred_s":7947,"lo_s":7487,"hi_s":9103,"error_pct":4.7,"inside_80":true,"n_train":1000},{"date":"2021-09-05","name":"Shropshire middle distance run - 8th overall","sport":"run","distance_km":19.95,"actual_s":5393,"pred_s":5647,"lo_s":5198,"hi_s":5967,"error_pct":4.7,"inside_80":true,"n_train":835},{"date":"2022-05-22","name":"Saxon Shore half marathon ","sport":"run","distance_km":21.08,"actual_s":5268,"pred_s":5889,"lo_s":5329,"hi_s":6556,"error_pct":11.8,"inside_80":false,"n_train":940},{"date":"2022-07-17","name":"Herne Bay Pier to Pier - 11th place","sport":"swim","distance_km":2.77,"actual_s":2956,"pred_s":2646,"lo_s":2038,"hi_s":3303,"error_pct":-10.5,"inside_80":true,"n_train":707},{"date":"2022-07-31","name":"Goodwood 70.3 swim","sport":"swim","distance_km":1.94,"actual_s":1931,"pred_s":1882,"lo_s":1686,"hi_s":2142,"error_pct":-2.5,"inside_80":true,"n_train":712},{"date":"2022-07-31","name":"Goodwood 70.3 bike","sport":"bike","distance_km":91.51,"actual_s":8826,"pred_s":9309,"lo_s":8817,"hi_s":10558,"error_pct":5.5,"inside_80":true,"n_train":1000},{"date":"2022-07-31","name":"Goodwood 70.3 run","sport":"run","distance_km":20.22,"actual_s":6095,"pred_s":5431,"lo_s":4942,"hi_s":6020,"error_pct":-10.9,"inside_80":false,"n_train":970},{"date":"2022-09-18","name":"70.3 Weymouth swim","sport":"swim","distance_km":2.0,"actual_s":1890,"pred_s":2020,"lo_s":1821,"hi_s":2286,"error_pct":6.9,"inside_80":true,"n_train":719},{"date":"2022-09-18","name":"70.3 Weymouth bike","sport":"bike","distance_km":90.77,"actual_s":10002,"pred_s":9194,"lo_s":8782,"hi_s":10242,"error_pct":-8.1,"inside_80":true,"n_train":1000},{"date":"2022-09-18","name":"70.3 Weymouth run","sport":"run","distance_km":21.37,"actual_s":5804,"pred_s":5708,"lo_s":5119,"hi_s":6440,"error_pct":-1.7,"inside_80":true,"n_train":989},{"date":"2023-05-21","name":"Outlaw Half - Swim","sport":"swim","distance_km":2.0,"actual_s":1896,"pred_s":1964,"lo_s":1776,"hi_s":2390,"error_pct":3.6,"inside_80":true,"n_train":771},{"date":"2023-05-21","name":"Outlaw Half Bike","sport":"bike","distance_km":89.0,"actual_s":8901,"pred_s":8867,"lo_s":8434,"hi_s":9710,"error_pct":-0.4,"inside_80":true,"n_train":1000},{"date":"2023-05-21","name":"Outlaw Half Run","sport":"run","distance_km":21.19,"actual_s":5941,"pred_s":5663,"lo_s":5139,"hi_s":6232,"error_pct":-4.7,"inside_80":true,"n_train":1000},{"date":"2023-07-30","name":"Pier to pier","sport":"swim","distance_km":2.82,"actual_s":2921,"pred_s":2789,"lo_s":1805,"hi_s":4049,"error_pct":-4.5,"inside_80":true,"n_train":778},{"date":"2023-08-06","name":"Challenge London Swim","sport":"swim","distance_km":1.84,"actual_s":1818,"pred_s":1785,"lo_s":1649,"hi_s":1996,"error_pct":-1.8,"inside_80":true,"n_train":779},{"date":"2023-08-06","name":"Challenge London Bike","sport":"bike","distance_km":65.94,"actual_s":6985,"pred_s":6788,"lo_s":6407,"hi_s":7419,"error_pct":-2.8,"inside_80":true,"n_train":1000},{"date":"2023-08-06","name":"Challenge London Run","sport":"run","distance_km":22.1,"actual_s":5802,"pred_s":6246,"lo_s":5754,"hi_s":6777,"error_pct":7.6,"inside_80":true,"n_train":1000},{"date":"2023-09-24","name":"Folkestone half marathon","sport":"run","distance_km":21.04,"actual_s":5228,"pred_s":5846,"lo_s":5362,"hi_s":6389,"error_pct":11.8,"inside_80":false,"n_train":1000},{"date":"2024-05-19","name":"Outlaw half swim","sport":"swim","distance_km":1.92,"actual_s":1748,"pred_s":1893,"lo_s":1728,"hi_s":2158,"error_pct":8.3,"inside_80":true,"n_train":782},{"date":"2024-05-19","name":"Outlaw half bike","sport":"bike","distance_km":88.59,"actual_s":8738,"pred_s":8919,"lo_s":8533,"hi_s":9660,"error_pct":2.1,"inside_80":true,"n_train":1000},{"date":"2024-05-19","name":"Outlaw half run","sport":"run","distance_km":21.35,"actual_s":5885,"pred_s":5864,"lo_s":5338,"hi_s":6381,"error_pct":-0.3,"inside_80":true,"n_train":1000},{"date":"2024-07-28","name":"T100 swim","sport":"swim","distance_km":2.06,"actual_s":1862,"pred_s":1968,"lo_s":1833,"hi_s":2174,"error_pct":5.7,"inside_80":true,"n_train":783},{"date":"2024-07-28","name":"T100 bike","sport":"bike","distance_km":78.76,"actual_s":7713,"pred_s":7867,"lo_s":7563,"hi_s":8353,"error_pct":2.0,"inside_80":true,"n_train":1000},{"date":"2024-07-28","name":"T100 Run","sport":"run","distance_km":18.89,"actual_s":4813,"pred_s":5117,"lo_s":4690,"hi_s":5601,"error_pct":6.3,"inside_80":true,"n_train":1000},{"date":"2024-11-02","name":"Half marathon - 4th place overall, PB!","sport":"run","distance_km":21.21,"actual_s":5183,"pred_s":5734,"lo_s":5281,"hi_s":6252,"error_pct":10.6,"inside_80":false,"n_train":1000},{"date":"2025-05-18","name":"Outlaw Half Swim","sport":"swim","distance_km":1.88,"actual_s":1743,"pred_s":1748,"lo_s":1629,"hi_s":1931,"error_pct":0.3,"inside_80":true,"n_train":785},{"date":"2025-05-18","name":"Outlaw Half Bike","sport":"bike","distance_km":89.31,"actual_s":8906,"pred_s":8877,"lo_s":8688,"hi_s":9298,"error_pct":-0.3,"inside_80":true,"n_train":1000},{"date":"2025-05-18","name":"Outlaw Half run","sport":"run","distance_km":21.35,"actual_s":5853,"pred_s":5737,"lo_s":5286,"hi_s":6306,"error_pct":-2.0,"inside_80":true,"n_train":1000},{"date":"2025-07-06","name":"Pier to pier 3k race","sport":"swim","distance_km":2.77,"actual_s":2787,"pred_s":2804,"lo_s":2402,"hi_s":3231,"error_pct":0.6,"inside_80":true,"n_train":786},{"date":"2025-08-10","name":"T100 swim","sport":"swim","distance_km":2.23,"actual_s":2086,"pred_s":2084,"lo_s":1969,"hi_s":2264,"error_pct":-0.1,"inside_80":true,"n_train":787},{"date":"2025-08-10","name":"T100 bike","sport":"bike","distance_km":78.13,"actual_s":7592,"pred_s":7677,"lo_s":7526,"hi_s":7944,"error_pct":1.1,"inside_80":true,"n_train":1000},{"date":"2025-08-10","name":"T100 run","sport":"run","distance_km":18.58,"actual_s":4750,"pred_s":4862,"lo_s":4519,"hi_s":5312,"error_pct":2.3,"inside_80":true,"n_train":1000},{"date":"2025-10-05","name":"Tonbridge Half Marathon","sport":"run","distance_km":21.16,"actual_s":5150,"pred_s":5501,"lo_s":5098,"hi_s":6028,"error_pct":6.8,"inside_80":true,"n_train":1000},{"date":"2026-05-17","name":"Outlaw Half Swim","sport":"swim","distance_km":1.49,"actual_s":1437,"pred_s":1403,"lo_s":1316,"hi_s":1559,"error_pct":-2.4,"inside_80":true,"n_train":790},{"date":"2026-05-17","name":"Outlaw Half Bike","sport":"bike","distance_km":88.99,"actual_s":8925,"pred_s":8859,"lo_s":8690,"hi_s":9312,"error_pct":-0.7,"inside_80":true,"n_train":1000},{"date":"2026-05-17","name":"Outlaw Half Run","sport":"run","distance_km":21.33,"actual_s":5815,"pred_s":5569,"lo_s":5197,"hi_s":6102,"error_pct":-4.2,"inside_80":true,"n_train":1000},{"date":"2026-07-26","name":"T100 swim","sport":"swim","distance_km":2.19,"actual_s":2115,"pred_s":2062,"lo_s":1953,"hi_s":2220,"error_pct":-2.5,"inside_80":true,"n_train":794},{"date":"2026-07-26","name":"T100 bike","sport":"bike","distance_km":78.81,"actual_s":8446,"pred_s":7768,"lo_s":7640,"hi_s":8090,"error_pct":-8.0,"inside_80":false,"n_train":1000},{"date":"2026-07-26","name":"T100 run","sport":"run","distance_km":17.95,"actual_s":5133,"pred_s":4703,"lo_s":4398,"hi_s":5137,"error_pct":-8.4,"inside_80":true,"n_train":1000}],"note":null}</script>
+<script>
+const D=JSON.parse(document.getElementById('data').textContent);
+const $=id=>document.getElementById(id);
+const L=D.levels, N=6000, COL={swim:'var(--swim)',bike:'var(--bike)',run:'var(--run)'}, HEX={swim:'#3ee0ff',bike:'#a46bff',run:'#ff6a3d'};
+const hm=s=>{s=Math.round(s/60);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const ms=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const legT=(sp,s)=>sp==='swim'?ms(s):hm(s);
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=rng(7), U=[0,1,2].map(()=>Float64Array.from({length:N},()=>L[0]+R()*(L[L.length-1]-L[0])));
+function interp(x,xs,ys){if(x<=xs[0])return ys[0];for(let i=1;i<xs.length;i++)if(x<=xs[i]){const t=(x-xs[i-1])/(xs[i]-xs[i-1]);return ys[i-1]+t*(ys[i]-ys[i-1])}return ys[ys.length-1]}
+function samples(c,g){const out=new Float64Array(N).fill(D.transitions_s);c.legs.forEach((l,i)=>{for(let k=0;k<N;k++)out[k]+=l.km/(interp(U[i][k],L,l.kmh_q)*(1+g[i]))*3600});return out}
+const pGoal=s=>{let n=0;for(const v of s)if(v<D.goal_s)n++;return n/s.length};
+const pctl=(s,p)=>{const a=Array.from(s).sort((x,y)=>x-y);return a[Math.floor(p*(a.length-1))]};
+let cur=0,gains=[0,0,0],shown={pct:0,time:0};
+function tween(key,to,el,fmt,dur=900){const from=shown[key],t0=performance.now();shown[key]=to;const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ (function f(t){const k=reduce?1:Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=fmt(from+(to-from)*e);if(k<1)requestAnimationFrame(f)})(t0)}
+const gl=D.goal_s, gname='sub '+hm(gl).replace(/:00$/,'');
+$('eyebrow').textContent=`Built for ${D.built_for} · ${gname} · ${D.courses.length} real 70.3 courses`;
+$('h1').innerHTML=`${D.built_for} wants ${gname.replace(' ','&nbsp;')}.<br><span class="grad">Which 70.3 gives him the best shot?</span>`;
+$('lede').textContent=`Race Card reads a training export and predicts every leg of race day as a range, with an open model running on your own laptop. Then it shows which course, and which leg, closes the gap.`;
+$('whose').textContent=D.athlete===D.built_for?`Predicted from ${D.athlete}'s own export`:`Demo runs on ${D.athlete}'s training, not ${D.built_for}'s. His stays on his laptop.`;
+$('rl').textContent='chance of '+gname;
+D.courses.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${c.name.replace('IRONMAN ','')} · ${c.when}`;$('course').appendChild(o)});
+$('course').onchange=e=>select(+e.target.value);
+function legsHTML(c,s){const tot=c.legs.reduce((a,l)=>a+l.median_s,0);
+ return c.legs.map(l=>{const f=l.median_s/tot,cc=2*Math.PI*15;return `<div class="leg" title="${Math.round(f*100)}% of race time"><div class="lh"><i>${l.sport.toUpperCase()}</i><svg width="26" height="26" viewBox="0 0 38 38"><circle cx="19" cy="19" r="15" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="6"/><circle cx="19" cy="19" r="15" fill="none" stroke="${HEX[l.sport]}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${cc}" stroke-dashoffset="${cc*(1-f)}" style="transition:stroke-dashoffset .9s"/></svg></div><b>${legT(l.sport,l.median_s)}</b><i>${legT(l.sport,l.lo_s)}–${legT(l.sport,l.hi_s)}</i></div>`}).join('')}
+function sliders(){$('sliders').innerHTML=['Swim','Bike','Run'].map((n,i)=>`<div class="row"><span>${n}</span><input type="range" min="0" max="8" step="0.5" value="${gains[i]*100}" data-i="${i}" style="--c:${COL[n.toLowerCase()]}" aria-label="${n} speed improvement"><span class="v" id="v${i}"></span></div>`).join('');
+ document.querySelectorAll('input[type=range]').forEach(r=>{const upd=()=>{r.style.setProperty('--p',(r.value/8*100)+'%');gains[+r.dataset.i]=r.value/100;update(false)};r.oninput=upd;upd()})}
+function hist(s){const lo=D.goal_s-45*60,hi=D.goal_s+45*60,B=60,bins=new Array(B).fill(0);for(const v of s){const b=Math.floor((v-lo)/(hi-lo)*B);if(b>=0&&b<B)bins[b]++}
+ const mx=Math.max(...bins,1),w=600/B;let h='<defs><linearGradient id="hb" x1="0" x2="1"><stop offset="0" stop-color="#3ee0ff"/><stop offset=".5" stop-color="#a46bff"/><stop offset="1" stop-color="#ff3d77"/></linearGradient></defs>';
+ bins.forEach((n,i)=>{const bh=n/mx*84,x=i*w,under=lo+(i+1)*(hi-lo)/B<=D.goal_s;h+=`<rect x="${x+1}" y="${92-bh}" width="${w-2}" height="${bh}" rx="2" fill="${under?'url(#hb)':'rgba(255,255,255,.14)'}" style="transition:all .6s"/>`});
+ const gx=(D.goal_s-lo)/(hi-lo)*600;h+=`<line x1="${gx}" x2="${gx}" y1="0" y2="96" stroke="#ff3d77" stroke-width="2" vector-effect="non-scaling-stroke"/>`;$('glab').style.left=`calc(${gx/6}% + 6px)`;$('glab').textContent=gname.toUpperCase();
+ $('hist').innerHTML=h;$('ticks').innerHTML=[lo,lo+(hi-lo)/4,(lo+hi)/2,lo+3*(hi-lo)/4,hi].map(t=>`<span>${hm(t)}</span>`).join('')}
+function update(full){const c=D.courses[cur],s=samples(c,gains),p=pGoal(s);
+ const base=full?null:pGoal(samples(c,[0,0,0]));
+ tween('pct',p*100,$('pct'),v=>Math.round(v));$('ring').style.strokeDashoffset=628.3*(1-p);
+ tween('time',pctl(s,.5),$('time'),hm);$('rng').innerHTML=`80% RANGE<br>${hm(pctl(s,.1))} – ${hm(pctl(s,.9))}`;hist(s);
+ [0,1,2].forEach(i=>{const g=[0,0,0];g[i]=gains[i];const pi=pGoal(samples(c,g));const el=$('v'+i);if(el)el.innerHTML=`+${(gains[i]*100).toFixed(1).replace('.0','')}% → <b>${Math.round(pi*100)}%</b>`})}
+function select(i){cur=i;$('course').value=i;const c=D.courses[i];
+ $('cmeta').textContent=`${c.where.toUpperCase()} · BIKE +${c.bike_m} M · ${c.swim.toUpperCase()} SWIM`;
+ $('legs').innerHTML=legsHTML(c);document.querySelectorAll('.course').forEach((e,k)=>e.classList.toggle('on',k===i));update(true)}
+$('top3').innerHTML=D.courses.slice(0,4).map((c,i)=>`<div class="t3" data-i="${i}"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.name.replace('IRONMAN 70.3 ','')}</span><div class="pbar"><i style="width:${c.p_goal*100}%"></i></div><span>${Math.round(c.p_goal*100)}%</span></div>`).join('');
+document.querySelectorAll('.t3').forEach(e=>e.onclick=()=>select(+e.dataset.i));
+$('ch2').textContent=`Best shot: ${D.courses[0].name.replace('IRONMAN ','')}, at ${Math.round(D.courses[0].p_goal*100)}%.`;
+$('clist').innerHTML=D.courses.map((c,i)=>`<div class="course" data-i="${i}"><div class="n">${c.name.replace('IRONMAN ','')}<small>${c.where} · ${c.when}</small></div><div class="el">bike +${c.bike_m} m</div><div class="pbar"><i data-w="${c.p_goal*100}"></i></div><div class="pp">${Math.round(c.p_goal*100)}%</div></div>`).join('');
+document.querySelectorAll('.course').forEach(e=>e.onclick=()=>{select(+e.dataset.i);scrollTo({top:0,behavior:'smooth'})});
+const bt=D.backtest;
+if(bt.length){const ins=bt.filter(r=>r.inside_80).length,mae=bt.reduce((a,r)=>a+Math.abs(r.error_pct),0)/bt.length;
+ $('bth2').textContent=`${ins} of ${bt.length} past race legs landed inside the 80% range. Typical miss: ${mae.toFixed(1)}%.`;
+ $('btn').textContent=bt.length;
+ const days={};bt.forEach(r=>{(days[r.date]=days[r.date]||[]).push(r)});
+ const key=(D.courses.find(c=>c.id==='weymouth')||D.courses[0]).name.replace('IRONMAN 70.3 ','').toLowerCase();
+ let pick=Object.entries(days).filter(([d,rs])=>rs.length>=3&&rs.some(r=>r.name.toLowerCase().includes(key)));
+ let title=`${key[0].toUpperCase()+key.slice(1)}, ${pick.length} times`;
+ if(pick.length<2){pick=Object.entries(days).filter(([d,rs])=>rs.length>=3).slice(-3);title='The last three middle-distance races'}
+ $('wey').innerHTML=pick.slice(-3).map(([d,rs])=>{const P=rs.reduce((a,r)=>a+r.pred_s,0),A=rs.reduce((a,r)=>a+r.actual_s,0),e=(P-A)/A*100;
+  return `<div class="wy"><div class="yr">${d.slice(0,4)} · ${rs[0].name.replace(/\s*-?\s*(swim|bike|run).*$/i,'').trim().toUpperCase()}</div><div class="t"><b>${hm(A)}</b><span>real · predicted ${hm(P)} · ${e>0?'+':''}${e.toFixed(1)}%</span></div>
+  ${rs.sort((a,b)=>['swim','bike','run'].indexOf(a.sport)-['swim','bike','run'].indexOf(b.sport)).map(r=>`<div class="lg"><span style="color:${HEX[r.sport]}">${r.sport.toUpperCase()}</span><span>pred ${legT(r.sport,r.pred_s)}</span><span>real ${legT(r.sport,r.actual_s)}</span><span class="${r.inside_80?'in':'out'}" style="text-align:right">${r.error_pct>0?'+':''}${r.error_pct}%</span></div>`).join('')}</div>`}).join('');
+ $('wey').insertAdjacentHTML('beforebegin',`<div class="sh" style="margin-top:26px">${title} · each predicted from only the training before it · leg times, transitions excluded</div>`);
+ const pb=pick.slice(-3).map(([d,rs])=>rs.find(r=>r.sport==='bike')).filter(Boolean);
+ if(pb.length>=2&&pb.every(r=>r.error_pct<0)){const lo=Math.min(...pb.map(r=>-r.error_pct)),hi=Math.max(...pb.map(r=>-r.error_pct));
+  $('wey').insertAdjacentHTML('afterend',`<p class="sub" style="margin-top:12px">The bike was the miss every time: predicted too fast by ${lo.toFixed(0)} to ${hi.toFixed(0)}%. The model knows how much a course climbs, not how it rides on the day, so treat the hilly courses' bike numbers as optimistic.</p>`)}
+ const lanes={swim:40,bike:85,run:130},X=e=>530+Math.max(-30,Math.min(30,e))/30*450;let c=`<rect x="${X(-10)}" y="10" width="${X(10)-X(-10)}" height="150" rx="10" fill="rgba(255,255,255,.035)"/><line x1="530" x2="530" y1="8" y2="162" stroke="rgba(255,255,255,.25)" stroke-dasharray="3 4"/>`;
+ ['swim','bike','run'].forEach(sp=>c+=`<text x="4" y="${lanes[sp]+4}" fill="${HEX[sp]}" font-family="Geist Mono" font-size="11">${sp.toUpperCase()}</text>`);
+ bt.forEach((r,i)=>{const y=lanes[r.sport]+((i*37)%17-8);c+=`<circle class="cd" cx="${X(r.error_pct)}" cy="${y}" r="6" fill="${r.inside_80?HEX[r.sport]:'none'}" stroke="${HEX[r.sport]}" stroke-width="2" opacity="0" style="transition:opacity .5s ${i*15}ms"><title>${r.date} ${r.name.replace(/</g,'')} · ${r.error_pct}%</title></circle>`});
+ [-30,-20,-10,10,20,30].forEach(v=>c+=`<text x="${X(v)}" y="168" text-anchor="middle" fill="#5c6370" font-family="Geist Mono" font-size="10">${v>0?'+':''}${v}%</text>`);
+ $('cal').innerHTML=c;
+ $('btt').innerHTML='<tr><th>Date</th><th>Race leg</th><th>Predicted</th><th>Actual</th><th>Off by</th><th>80% range</th></tr>'+bt.map(r=>`<tr><td class="mono">${r.date}</td><td>${r.name.replace(/</g,'&lt;')}</td><td class="mono">${legT(r.sport,r.pred_s)}</td><td class="mono">${legT(r.sport,r.actual_s)}</td><td class="mono">${r.error_pct>0?'+':''}${r.error_pct}%</td><td class="${r.inside_80?'in':'out'}">${r.inside_80?'inside':'outside'}</td></tr>`).join('')}
+else{$('bth2').textContent='No past races marked in this export yet.'}
+const W=D.weekly,tot=W.reduce((a,w)=>a+w.swim+w.bike+w.run,0);
+$('big3').innerHTML=[[D.sessions.n,'sessions in the export'],[Math.round(tot),'hours in the last year'],[D.backtest.length,'race legs checked']].map(([v,l])=>`<div class="stat"><b data-to="${v}">0</b><span>${l}</span></div>`).join('');
+const mx=Math.max(...W.map(w=>w.swim+w.bike+w.run),1),bw=1040/W.length;let hh='';
+W.forEach((w,i)=>{let y=150;['swim','bike','run'].forEach(sp=>{const h=w[sp]/mx*140;y-=h;hh+=`<rect class="hb" x="${i*bw+2}" y="${y}" width="${bw-4}" height="${h}" rx="2" fill="${HEX[sp]}" opacity=".85" style="transform-origin:${i*bw}px 150px;transform:scaleY(0);transition:transform .7s ${i*12}ms cubic-bezier(.2,.8,.2,1)"/>`})});
+$('heart').innerHTML=hh;
+const lim=['A prediction for one person from their own logged training, not coaching or medical advice.',
+ 'Each leg is sampled separately, so the range is a little narrower than real life: a bad day is usually bad in all three.',
+ 'The model knows each course\'s distance and climbing. It does not know about heat, wind, sea conditions or non-wetsuit swims.',
+ `Transitions are a flat ${Math.round(D.transitions_s/60)} minutes. Courses with unpublished run climbing are treated as flat: ${D.courses.filter(c=>!c.run_known).map(c=>c.name.replace('IRONMAN 70.3 ','')).join(', ')}.`,
+ 'TabPFN v2 is licensed for non-commercial use. Course climbing is from IRONMAN\'s own course routes or finishers.com, checked 2 Oct 2026.'];
+$('limits').innerHTML=lim.map(t=>`<li>${t}</li>`).join('');
+$('gen').textContent=`Generated ${D.generated} from ${D.sessions.n} sessions logged ${D.sessions.first} to ${D.sessions.last}.`;
+if(D.note){$('note').hidden=false;$('note').innerHTML=`${D.note.text.replace(/</g,'&lt;')}<small>${D.note.source==='gemma'?'WRITTEN BY GEMMA 4 ON-DEVICE, FROM THE NUMBERS ABOVE ONLY':'TEMPLATE NOTE · OLLAMA WAS NOT RUNNING'}</small>`}
+sliders();const wi=D.courses.findIndex(c=>c.id==='weymouth');select(wi>=0?wi:0);
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('vis');
+ e.target.querySelectorAll('.pbar i').forEach(b=>b.style.width=b.dataset.w+'%');
+ e.target.querySelectorAll('.cd').forEach(b=>b.style.opacity=1);e.target.querySelectorAll('.hb').forEach(b=>b.style.transform='scaleY(1)');
+ e.target.querySelectorAll('[data-to]').forEach(b=>{const to=+b.dataset.to;shown['s'+to]=0;tween('s'+to,to,b,v=>Math.round(v).toLocaleString('en-GB'),1400)});io.unobserve(e.target)}),{threshold:.18});
+document.querySelectorAll('.reveal').forEach(e=>io.observe(e));
+</script>
+</body>
+</html>
