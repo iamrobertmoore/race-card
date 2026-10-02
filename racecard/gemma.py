@@ -19,17 +19,23 @@ MODEL = "gemma4:e4b"
 DEFAULT_NAME = re.compile(r"^(morning|afternoon|evening|night|lunch)\s+(run|ride|swim|walk|workout)$", re.I)
 
 RACE_SYSTEM = (
-    "You label an athlete's activity log. For each numbered line decide if it was a race the athlete "
-    "competed in: a triathlon or duathlon leg, a running race (parkrun, 10k, half marathon, marathon), "
-    "an open-water swim race, a time trial event. NOT races: training sessions, intervals, tempo or "
-    "'race pace' work, warm-ups, 'pre race' shakeouts and openers, course recces, virtual or Zwift "
-    "events, recovery, and parkruns or runs done pushing a buggy or running with a child. "
-    "Answer only JSON: {\"races\": [line numbers that were races]}."
+    "You label an athlete's activity log. Each numbered line is: date | type | distance | title | what else "
+    "they did that day. Decide which lines were races the athlete competed in.\n"
+    "RACES: a triathlon, duathlon or aquathlon leg (a swim, ride and run on the same day with an event name, "
+    "e.g. '70.3 Weymouth bike', 'Outlaw Half Swim', 'T100 run'), a running race (parkrun, 10k, 10 mile, half "
+    "marathon, marathon, a named road race), an open-water swim race, a swimrun, a DNF in a race.\n"
+    "NOT RACES: training, intervals, tempo or 'race pace' work, bricks, Masters swim sessions, warm-ups, "
+    "'pre race' shakeouts and openers, course recces, sportives and charity rides, holidays, titles that are "
+    "only a date or a place, and parkruns run pushing a buggy or with a child.\n"
+    "A full-distance or middle-distance event name on a swim, ride or run is a race even if the title is short. "
+    "Answer only JSON: {\"races\": [line numbers that were races]}. Use [] if none."
 )
+RACE_TYPES = {"Run", "Ride", "Swim"}
 
 
 def _chat(system: str, user: str, *, json_mode: bool, timeout: float = 180.0) -> str | None:
-    body = {"model": MODEL, "stream": False, "options": {"temperature": 0},
+    # think: False because Gemma 4 reasons before answering by default, which made each call ~45s.
+    body = {"model": MODEL, "stream": False, "think": False, "options": {"temperature": 0},
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
     if json_mode:
         body["format"] = "json"
@@ -71,19 +77,34 @@ def read_activity_titles(path: str) -> list[dict]:
     return out
 
 
-def find_races(acts: list[dict], batch: int = 40, progress=None) -> list[dict]:
-    """Titles Strava generates itself ('Morning Run') carry no information and are skipped."""
-    cands = [a for a in acts if a["name"] and not DEFAULT_NAME.match(a["name"])]
+def _ask(chunk: list[dict]) -> set[int] | None:
+    lines = "\n".join(f"{i + 1}. {a['date']} | {a['type']} | {a['km']} km | {a['name']} | same day: {a['same_day']}"
+                      for i, a in enumerate(chunk))
+    ans = _chat(RACE_SYSTEM, lines, json_mode=True)
+    try:
+        return {int(n) for n in json.loads(ans or "").get("races", [])}
+    except (ValueError, TypeError, AttributeError):
+        return None
+
+
+def find_races(acts: list[dict], batch: int = 25, progress=None) -> list[dict]:
+    """Outdoor swims, rides and runs with a title the athlete wrote. Titles Strava generates itself
+    ('Morning Run') carry no information, and virtual sessions are never race-day efforts, so both
+    are skipped before Gemma sees anything."""
+    by_day: dict[str, set[str]] = {}
+    for a in acts:
+        by_day.setdefault(a["date"], set()).add(a["type"])
+    cands = [dict(a, same_day=", ".join(sorted(by_day[a["date"]] - {a["type"]})) or "nothing else")
+             for a in acts if a["type"] in RACE_TYPES and a["name"] and not DEFAULT_NAME.match(a["name"])]
     found = []
     for start in range(0, len(cands), batch):
         chunk = cands[start:start + batch]
-        lines = "\n".join(f"{i + 1}. {a['date']} | {a['type']} | {a['km']} km | {a['name']}" for i, a in enumerate(chunk))
-        ans = _chat(RACE_SYSTEM, lines, json_mode=True)
-        try:
-            nums = {int(n) for n in json.loads(ans or "{}").get("races", [])}
-        except (ValueError, TypeError, AttributeError):
-            nums = set()
-        found += [chunk[n - 1] for n in sorted(nums) if 1 <= n <= len(chunk)]
+        nums = _ask(chunk)
+        if nums is None:  # a garbled answer: try the two halves on their own before giving up
+            half = len(chunk) // 2
+            a, b = _ask(chunk[:half]) or set(), _ask(chunk[half:]) or set()
+            nums = a | {n + half for n in b}
+        found += [{k: chunk[n - 1][k] for k in ("date", "type", "name", "km")} for n in sorted(nums) if 1 <= n <= len(chunk)]
         if progress:
             progress(min(start + batch, len(cands)), len(cands), len(found))
     return found
