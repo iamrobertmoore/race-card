@@ -19,6 +19,10 @@ His training is his, so I tested it on mine first.
   Weymouth (31%), 5:08 at Swansea (24%). The difference is almost all bike climbing.
 - I had it predict 79 of my past race legs, each one using only the training I'd logged before that
   day. **62 of 79 landed inside its 80% range**, and the typical miss was 6.9%.
+- On those same legs, with the same cut-off, simpler guesses missed by more: gradient-boosted trees
+  trained on exactly the same rows 7.9%, "same as my last race at that distance" 8.3%, a straight-line
+  fit 11.1%, my recent training pace 12.1%. It's not a landslide (TabPFN was closer than the trees on
+  48 of 79 legs), but the trees give one number and TabPFN gives the range the whole card is built on.
 - Gemma 4, on the laptop, read 1,005 of my activity titles in under three minutes and found 166 of
   the 181 races in my hand-checked list, with 6 false alarms. That's after two rounds of fixing the
   prompt against that same list, so it's a best case. Its first run took 47 minutes, until I turned its
