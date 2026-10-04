@@ -40,7 +40,7 @@ His training is his, so I tested it on mine first.
    previous 7 and 42 days, and whether it was a race.
 4. **TabPFN v2 predicts each leg.** Prior Labs' open tabular foundation model fits your sessions in
    seconds on a laptop CPU and returns a spread of likely speeds, not one number.
-5. **20,000 simulated race days per course.** Each leg is drawn from its spread, transitions are added,
+5. **6,000 simulated race days per course.** Each leg is drawn from its spread, transitions are added,
    and the share under your goal is your chance.
 6. **Gemma 4 writes a short plan** from the computed numbers only. If it writes a number that isn't in
    the facts it was given, the note is thrown away.
