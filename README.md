@@ -11,7 +11,8 @@ It runs on your laptop with two open models, and nothing you've logged is upload
 **Live demo, built from my own Strava export:** https://iamrobertmoore.github.io/race-card/
 
 I built it for my friend Sam, who wants to go under five hours at a 70.3 and hasn't picked which one.
-His training is his, so I tested it on mine first.
+His training is his, so I tested it on mine first. He has since run it on his own export, on his own
+laptop, and is working on his bike.
 
 ## What it found on my data
 
@@ -27,8 +28,6 @@ His training is his, so I tested it on mine first.
   the 181 races in my hand-checked list, with 6 false alarms. That's after two rounds of fixing the
   prompt against that same list, so it's a best case. Its first run took 47 minutes, until I turned its
   thinking off.
-- I've raced Weymouth three times. It predicted my bike too fast every time, by 7 to 11%. So on the
-  hilly courses, treat its bike numbers as optimistic.
 
 ## How it works
 
@@ -80,6 +79,8 @@ Where a run's climbing isn't published it's treated as flat, and the page says w
 
 - It's a prediction for one person from their own logged training, not coaching or medical advice.
 - It knows a course's distance and climbing, not heat, wind, sea state or a non-wetsuit swim.
+- It knows how much a course climbs, not how it rides on the day. On my three Weymouths it had the bike
+  7 to 11% too fast, so treat the hilliest courses' bike splits as the optimistic end.
 - Legs are simulated independently, so the range is a little narrower than real life.
 - Transitions are a flat 7 minutes.
 - TabPFN v2 is licensed for non-commercial use, which is what this is.
