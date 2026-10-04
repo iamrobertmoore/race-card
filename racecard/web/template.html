@@ -186,7 +186,7 @@ footer li{margin:4px 0 4px 18px}
 <section class="s reveal" id="check">
 <div class="eyebrow">Checked before trusted</div>
 <h2 id="bth2"></h2>
-<p class="sub">Before trusting it with anyone else's race, I made it predict mine. Every past race leg was predicted using only the training logged before that day, then compared with what actually happened. Filled dots landed inside the 80% range.</p>
+<p class="sub" id="checksub">Before trusting it with anyone else's race, I made it predict mine. Every past race leg was predicted using only the training logged before that day, then compared with what actually happened. Filled dots landed inside the 80% range.</p>
 <div class="wey" id="wey"></div>
 <div class="panel" style="margin-top:14px"><div class="sh">Every checked leg · how far off the prediction was</div>
 <svg class="cal" id="cal" viewBox="0 0 1000 170" role="img" aria-label="Prediction error for every past race leg"></svg>
@@ -201,10 +201,10 @@ footer li{margin:4px 0 4px 18px}
 <h2>Two open models, one laptop, no upload.</h2>
 <div class="flow">
 <div class="st"><span class="n">01</span><h4>Your export</h4><p>Strava's activities.csv or a Garmin CSV. Every swim, ride and run you've logged.</p></div>
-<div class="st g"><span class="n">02</span><h4>Gemma 4 finds your races</h4><p id="gemmaline">Reads every activity title and picks out the races, so race-day effort is labelled without you tagging fifteen years by hand.</p></div>
+<div class="st g"><span class="n">02</span><h4>Gemma 4 finds your races</h4><p id="gemmaline">Reads every activity title and picks out the races, so race-day effort is labelled without you tagging years of log by hand.</p></div>
 <div class="st"><span class="n">03</span><h4>Features from your own log</h4><p>Distance, climbing per km, how long ago, the last 7 and 42 days of training load, and whether it was a race.</p></div>
 <div class="st t"><span class="n">04</span><h4>TabPFN predicts each leg</h4><p>An open tabular foundation model learns from your sessions in seconds and returns a full spread of likely speeds, not one number.</p></div>
-<div class="st"><span class="n">05</span><h4>20,000 race days per course</h4><p>Each leg is drawn from its spread, transitions added, and the share under your goal is your chance.</p></div>
+<div class="st"><span class="n">05</span><h4>6,000 race days per course</h4><p>Each leg is drawn from its spread, transitions added, and the share under your goal is your chance.</p></div>
 <div class="st g"><span class="n">06</span><h4>Gemma 4 writes the plan</h4><p>Short and plain, from the computed numbers only. Any number it makes up gets the note thrown out.</p></div>
 </div>
 </section>
@@ -283,7 +283,7 @@ function gapLine(c){const p0=pGoal(samples(c,[0,0,0]));if(p0>=.8){$('gap').inner
  const need=[0,1,2].map(i=>solve(c,i,T));const parts=need.map((g,i)=>g==null?null:`${['swim','bike','run'][i]} <b>${(g*100).toFixed(1)}%</b> faster`).filter(Boolean);
  $('gap').innerHTML=parts.length?`To make ${gname} ${word} here on one leg alone: ${parts.join(', or ')}.`:`No single leg gets ${gname} to ${word} here. It needs all three.`}
 function history(c){const key=c.name.replace('IRONMAN 70.3 ','').toLowerCase().split('-')[0];let rs=(D.backtest||[]).filter(r=>r.name.toLowerCase().includes(key));const per={};rs.forEach(r=>per[r.date]=(per[r.date]||0)+1);rs=rs.filter(r=>per[r.date]>=2);
- const yrs=[...new Set(rs.map(r=>r.date.slice(0,4)))].sort();if(!yrs.length){$('hist3').innerHTML=`<div class="sh">Not raced here yet</div>`;return}
+ const yrs=[...new Set(rs.map(r=>r.date.slice(0,4)))].sort();if(!yrs.length){$('hist3').innerHTML=D.backtest_ran===false?'':`<div class="sh">Not raced here yet</div>`;return}
  const bikes=rs.filter(r=>r.sport==='bike');const slow=bikes.length>=2&&bikes.every(r=>r.error_pct<0);
  $('hist3').innerHTML=`<div class="sh">Raced here ${yrs.length} time${yrs.length>1?'s':''}</div><div class="yrs">${yrs.map(y=>`<span>${y}</span>`).join('')}</div>${slow?`<p style="margin-top:8px">The bike was slower than predicted every time, so read this course's bike as optimistic.</p>`:''}`}
 function select(i){cur=i;$('course').value=i;const c=D.courses[i];gapLine(c);history(c);if(D.note){const mine=!D.note.facts||!D.note.facts.race||c.name.endsWith(D.note.facts.race.replace('IRONMAN ',''));$('note').hidden=!mine}
@@ -325,7 +325,7 @@ if(bt.length){const ins=bt.filter(r=>r.inside_80).length,mae=bt.reduce((a,r)=>a+
   $('vsline').textContent=[L&&`TabPFN was closer than "same as last time" on ${beat(L)} legs`,G&&`closer than gradient-boosted trees on ${beat(G)}`].filter(Boolean).join(', and ')+'. Same training, same cut-off: nothing from race day or after.';
   $('vs').hidden=false}
  $('btt').innerHTML='<tr><th>Date</th><th>Race leg</th><th>Predicted</th><th>Actual</th><th>Off by</th><th>80% range</th></tr>'+bt.map(r=>`<tr><td class="mono">${r.date}</td><td>${r.name.replace(/</g,'&lt;')}</td><td class="mono">${legT(r.sport,r.pred_s)}</td><td class="mono">${legT(r.sport,r.actual_s)}</td><td class="mono">${r.error_pct>0?'+':''}${r.error_pct}%</td><td class="${r.inside_80?'in':'out'}">${r.inside_80?'inside':'outside'}</td></tr>`).join('')}
-else{$('bth2').textContent='No past races marked in this export yet.'}
+else{$('bth2').textContent=D.backtest_ran===false?'The backtest was skipped for this card. Run it again without --no-backtest to check it against your own past races.':'No past races were found in this export, so there was nothing to check it against yet.'}
 const W=D.weekly,tot=W.reduce((a,w)=>a+w.swim+w.bike+w.run,0);
 $('big3').innerHTML=[[D.sessions.n,'sessions in the export'],[Math.round(tot),'hours in the last year'],[D.backtest.length,'race legs checked']].map(([v,l])=>`<div class="stat"><b data-to="${v}">0</b><span>${l}</span></div>`).join('');
 const mx=Math.max(...W.map(w=>w.swim+w.bike+w.run),1),bw=1040/W.length;let hh='';
@@ -338,6 +338,12 @@ const lim=['A prediction for one person from their own logged training, not coac
  'TabPFN v2 is licensed for non-commercial use. Course climbing is from IRONMAN\'s own course routes or finishers.com, checked 2 Oct 2026.'];
 $('limits').innerHTML=lim.map(t=>`<li>${t}</li>`).join('');
 $('gen').textContent=`Generated ${D.generated} from ${D.sessions.n} sessions logged ${D.sessions.first} to ${D.sessions.last}.`;
+if(D.athlete===D.built_for)$('checksub').textContent='Before trusting a number, check it. Every past race leg in this export was predicted using only the training logged before that day, then compared with what actually happened. Filled dots landed inside the 80% range.';
+{const kw='races were picked out by words in their titles, like "race", "70.3" and "half marathon".',yrs=Math.max(1,Math.round((new Date(D.sessions.last)-new Date(D.sessions.first))/3.156e10)),src=D.race_source;
+ if(!D.gemma&&src==='Gemma 4')$('gemmaline').textContent=`Gemma 4 read your activity titles on this machine and picked out ${D.races_marked} races, so race-day effort is labelled without you tagging ${yrs} year${yrs>1?'s':''} of log by hand.`;
+ else if(!D.gemma&&src==='title keywords')$('gemmaline').textContent=`Gemma 4 wasn't running for this card, so ${kw} Start Ollama with gemma4:e4b and run it again to let Gemma read them.`;
+ else if(!D.gemma&&src==='title keywords, not Strava')$('gemmaline').textContent=`Gemma 4 reads Strava exports. This one isn't, so ${kw}`;
+ else if(!D.gemma&&src)$('gemmaline').textContent=`Races came from your own list (${src}), so Gemma 4 wasn't needed for this step.`}
 if(D.gemma){const fp=D.gemma.flagged-D.gemma.agree;$('gemmaline').innerHTML=`Gemma 4 read my ${D.gemma.titles.toLocaleString('en-GB')} hand-titled swims, rides and runs in ${Math.max(1,Math.round(D.gemma.seconds/60))} minutes on a laptop. It found <b>${D.gemma.agree} of the ${D.gemma.answer_key}</b> races in my hand-checked list, and flagged ${fp} sessions that weren't.`}
 if(D.note){$('note').hidden=false;$('note').innerHTML=`${D.note.text.replace(/</g,'&lt;')}<small>${D.note.source==='gemma'?'WRITTEN BY GEMMA 4 ON-DEVICE, FROM THE NUMBERS ABOVE ONLY':'TEMPLATE NOTE · OLLAMA WAS NOT RUNNING'}</small>`}
 sliders();const wi=D.courses.findIndex(c=>c.id==='weymouth');select(wi>=0?wi:0);

@@ -57,3 +57,31 @@ def finish_samples(legs: list[tuple[float, list[float]]], transitions_s: float, 
         kmh = np.interp(u, LEVELS, kq) * (1 + (gains or {}).get(i, 0.0))
         total += km / kmh * 3600.0
     return total
+
+
+def _mulberry32(seed: int):
+    a = seed & 0xFFFFFFFF
+    while True:
+        a = (a + 0x6D2B79F5) & 0xFFFFFFFF
+        t = ((a ^ (a >> 15)) * (1 | a)) & 0xFFFFFFFF
+        t = ((t + (((t ^ (t >> 7)) * (61 | t)) & 0xFFFFFFFF)) & 0xFFFFFFFF) ^ t
+        yield ((t ^ (t >> 14)) & 0xFFFFFFFF) / 4294967296
+
+
+PAGE_N, PAGE_SEED = 6000, 7
+
+
+def page_samples(legs: list[tuple[float, list[float]]], transitions_s: float, gains=(0.0, 0.0, 0.0)) -> np.ndarray:
+    """The exact race days the page simulates (same generator, seed and order), so every number the
+    card prints from Python matches what the sliders show in the browser."""
+    r = _mulberry32(PAGE_SEED)
+    u = np.array([[LEVELS[0] + next(r) * (LEVELS[-1] - LEVELS[0]) for _ in range(PAGE_N)] for _ in range(3)])
+    total = np.full(PAGE_N, float(transitions_s))
+    for i, (km, kq) in enumerate(legs):
+        total += km / (np.interp(u[i], LEVELS, kq) * (1 + gains[i])) * 3600.0
+    return total
+
+
+def page_pctl(samples: np.ndarray, p: float) -> float:
+    """The page's percentile: the sorted value at floor(p * (n - 1))."""
+    return float(np.sort(samples)[int(np.floor(p * (len(samples) - 1)))])

@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import tempfile
 import webbrowser
+import zipfile
 from pathlib import Path
 
 from . import card, explain, gemma, ingest, report
@@ -28,6 +30,20 @@ def facts_for(data: dict, course_id: str = "weymouth") -> dict:
     }
 
 
+def _titles(export: str) -> list[dict] | None:
+    """Activity titles for Gemma, from a Strava activities.csv or the archive it came in."""
+    try:
+        if str(export).lower().endswith(".zip"):
+            with zipfile.ZipFile(export) as z, tempfile.TemporaryDirectory() as tmp:
+                name = next(n for n in z.namelist() if n.lower().endswith("activities.csv"))
+                path = Path(tmp) / "activities.csv"
+                path.write_bytes(z.read(name))
+                return gemma.read_activity_titles(str(path))
+        return gemma.read_activity_titles(str(export))
+    except (ValueError, KeyError, OSError, StopIteration):
+        return None  # not a Strava export (a Garmin CSV): fall back to title keywords
+
+
 def build(export: str, name: str, built_for: str, goal: str, races_file: str | None, out: str,
           backtest: bool = True, use_gemma: bool = True) -> dict:
     sessions = ingest.load(export)
@@ -37,14 +53,20 @@ def build(export: str, name: str, built_for: str, goal: str, races_file: str | N
         raw = raw["races"] if isinstance(raw, dict) else raw
         pairs = [(r["date"], r["name"]) if isinstance(r, dict) else tuple(r) for r in raw]
         sessions = ingest.mark_races(sessions, pairs)
-        race_source = races_file
-    elif use_gemma and str(export).lower().endswith(".csv") and gemma.ollama_ready():
-        print("Gemma 4 is reading your activity titles to find your races...")
-        found = gemma.find_races(gemma.read_activity_titles(export))
-        sessions = ingest.mark_races(sessions, [(a["date"], a["name"]) for a in found])
-        race_source = "Gemma 4"
+        race_source = Path(races_file).name
+    elif use_gemma and gemma.ollama_ready():
+        titles = _titles(export)
+        if titles is None:
+            race_source = "title keywords, not Strava"
+        if titles:
+            print("Gemma 4 is reading your activity titles to find your races...")
+            found = gemma.find_races(titles)
+            if found:
+                sessions = ingest.mark_races(sessions, [(a["date"], a["name"]) for a in found])
+                race_source = "Gemma 4"
     data = report.build(sessions, athlete=name, built_for=built_for, goal_s=_hm(goal), run_backtest=backtest)
     data["race_source"] = race_source
+    data["races_marked"] = int(sessions.is_race.sum())
     if use_gemma:
         f = facts_for(data)
         text, source = explain.note(f)

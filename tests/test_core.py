@@ -105,3 +105,29 @@ def test_baselines_only_use_the_past():
     assert set(b) == {"last_race", "boosted_trees", "straight_line", "recent_training"}
     assert b["last_race"] is None  # no earlier race to copy
     assert all(v is None or v > 0 for v in b.values())
+
+
+def test_page_samples_match_the_browser():
+    # Same generator, seed and order as the page. First draws of mulberry32(7), checked in the browser.
+    from racecard.model import _mulberry32
+    r = _mulberry32(7)
+    first = [round(next(r), 6) for _ in range(3)]
+    assert first == [0.011705, 0.061958, 0.976908]
+    legs = [(1.9, [3.0] * 19), (90.0, [30.0] * 19), (21.1, [12.0] * 19)]
+    s = model.page_samples(legs, 420)
+    assert len(s) == model.PAGE_N and np.allclose(s, 420 + 1.9 / 3 * 3600 + 3 * 3600 + 21.1 / 12 * 3600)
+
+
+def test_titles_skip_garmin_and_read_strava_zips(tmp_path):
+    import zipfile
+    from racecard import cli
+    g = tmp_path / "garmin.csv"
+    g.write_text("Activity Type,Date,Title,Distance,Time\nRunning,2026-01-01 07:00:00,Parkrun,5.0,00:22:00\n")
+    assert cli._titles(str(g)) is None
+    rows = [["1", "Jan 1, 2026, 7:00:00 AM", "Canterbury 10", "Run", "3600", "16.1", "", "3500", "16100", "40", ""]]
+    csv_text = strava_csv(rows).getvalue()
+    z = tmp_path / "export.zip"
+    with zipfile.ZipFile(z, "w") as zf:
+        zf.writestr("export_1/activities.csv", csv_text)
+    t = cli._titles(str(z))
+    assert t and t[0]["name"] == "Canterbury 10"
