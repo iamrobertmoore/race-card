@@ -101,7 +101,7 @@ h2{font-size:clamp(28px,3.4vw,38px);letter-spacing:-.04em;line-height:1.08;margi
 .wy .yr{font-family:"Geist Mono";font-size:11px;color:var(--muted);letter-spacing:.12em}
 .wy .t{display:flex;align-items:baseline;gap:10px;margin:8px 0 4px}.wy .t b{font-size:38px;letter-spacing:-.05em}.wy .t span{font-family:"Geist Mono";font-size:12px;color:var(--muted)}
 .wy .lg{display:grid;grid-template-columns:44px 1fr 1fr 56px;gap:6px;font-family:"Geist Mono";font-size:11.5px;color:#c9cfd8;margin-top:6px}
-.cal{width:100%;height:170px;display:block;margin-top:12px}
+.cal{width:100%;height:170px;display:block;margin-top:12px}.vs{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr) 58px;gap:14px;align-items:center;margin:14px 0 0;font-size:14px}.vs small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;font-weight:400}.vs b{font-family:"Geist Mono";font-weight:500;text-align:right}.vs .pbar i.dim{background:rgba(255,255,255,.26)}.vs.me{color:var(--ink);font-weight:600}
 details.all{margin-top:14px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:12px 16px}
 details.all summary{cursor:pointer;font-family:"Geist Mono";font-size:12px;color:var(--muted);letter-spacing:.06em}
 .btt{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}.btt td,.btt th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.btt th{color:var(--muted);font-weight:500}
@@ -134,7 +134,7 @@ footer li{margin:4px 0 4px 18px}
 :focus-visible{outline:2px solid #a46bff;outline-offset:3px}
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .8s ease,transform .8s cubic-bezier(.2,.8,.2,1)}.reveal.vis{opacity:1;transform:none}
 @media (max-width:980px){.hero{grid-template-columns:minmax(0,1fr)}.dash{grid-template-columns:minmax(0,1fr)}.big3,.why{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:620px){.hero{display:flex;flex-direction:column}.hero>div:first-child{display:contents}.hero .eyebrow{order:1}.hero h1{order:2;margin-bottom:8px}.hero .dash{order:3}.hero .lede{order:4}.hero .cta{order:5;margin-top:0}.hero .fine{order:6}h1{font-size:36px}.lede{font-size:16px}.pills .pill:nth-child(2){display:none}.hero{padding-top:18px;gap:26px}.ringbox{transform:scale(.9)}.legs{grid-template-columns:1fr}.course{grid-template-columns:minmax(0,1fr) 60px}.course .el,.course .pbar{display:none}.row{grid-template-columns:40px minmax(0,1fr) 96px;gap:8px}.pills{gap:6px}.pill{font-size:10px;letter-spacing:.04em;padding:6px 10px;gap:6px}.hero .eyebrow{letter-spacing:.1em;font-size:10.5px}}
+@media (max-width:620px){.hero{display:flex;flex-direction:column}.hero>div:first-child{display:contents}.hero .eyebrow{order:1}.hero h1{order:2;margin-bottom:8px}.hero .dash{order:3}.hero .lede{order:4}.hero .cta{order:5;margin-top:0}.hero .fine{order:6}h1{font-size:36px}.lede{font-size:16px}.pills .pill:nth-child(2){display:none}.hero{padding-top:18px;gap:26px}.ringbox{transform:scale(.9)}.legs{grid-template-columns:1fr}.course{grid-template-columns:minmax(0,1fr) 60px}.course .el,.course .pbar{display:none}.row{grid-template-columns:40px minmax(0,1fr) 96px;gap:8px}.vs{grid-template-columns:minmax(0,1fr) 64px 50px;gap:10px;font-size:13px}.pills{gap:6px}.pill{font-size:10px;letter-spacing:.04em;padding:6px 10px;gap:6px}.hero .eyebrow{letter-spacing:.1em;font-size:10.5px}}
 @media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 </style>
 </head>
@@ -191,6 +191,7 @@ footer li{margin:4px 0 4px 18px}
 <div class="panel" style="margin-top:14px"><div class="sh">Every checked leg · how far off the prediction was</div>
 <svg class="cal" id="cal" viewBox="0 0 1000 170" role="img" aria-label="Prediction error for every past race leg"></svg>
 <div class="ticks"><span>prediction too fast</span><span>spot on</span><span>prediction too slow</span></div></div>
+<div class="panel" id="vs" style="margin-top:14px" hidden><div class="sh">The same legs, guessed five ways · typical miss, lower is better</div><div id="vsrows"></div><p class="sub" id="vsline" style="margin:12px 0 0"></p></div>
 <details class="all"><summary>See all <span id="btn"></span> legs</summary><div style="overflow-x:auto"><table class="btt" id="btt"></table></div></details>
 </section>
 
@@ -314,6 +315,15 @@ if(bt.length){const ins=bt.filter(r=>r.inside_80).length,mae=bt.reduce((a,r)=>a+
  bt.forEach((r,i)=>{const y=lanes[r.sport]+((i*37)%17-8);c+=`<circle class="cd" cx="${X(r.error_pct)}" cy="${y}" r="6" fill="${r.inside_80?HEX[r.sport]:'none'}" stroke="${HEX[r.sport]}" stroke-width="2" opacity="0" style="transition:opacity .5s ${i*15}ms"><title>${r.date} ${r.name.replace(/</g,'')} · ${r.error_pct}%</title></circle>`});
  [-30,-20,-10,10,20,30].forEach(v=>c+=`<text x="${X(v)}" y="168" text-anchor="middle" fill="#5c6370" font-family="Geist Mono" font-size="10">${v>0?'+':''}${v}%</text>`);
  $('cal').innerHTML=c;
+ const BL=[['last_race','Same as last time','your previous race at that distance'],['boosted_trees','Gradient-boosted trees','the usual tabular model, same rows'],['straight_line','Straight-line fit','linear regression, same rows'],['recent_training','Recent training pace','your median speed, 42 days before']];
+ const mean=a=>a.reduce((x,y)=>x+Math.abs(y),0)/a.length;
+ const bls=BL.map(([k,n,d])=>{const rs=bt.filter(r=>r.baseline_error_pct&&r.baseline_error_pct[k]!=null);return rs.length?{k,n,d,m:mean(rs.map(r=>r.baseline_error_pct[k])),rs}:null}).filter(Boolean);
+ if(bls.length){const all=[{n:'TabPFN',d:'Race Card, from your own sessions',m:mae,me:1},...bls.sort((a,b)=>a.m-b.m)],mx=Math.max(...all.map(x=>x.m));
+  $('vsrows').innerHTML=all.map(x=>`<div class="vs${x.me?' me':''}"><div>${x.n}<small>${x.d}</small></div><div class="pbar"><i class="${x.me?'':'dim'}" data-w="${(x.m/mx*100).toFixed(1)}"></i></div><b>${x.m.toFixed(1)}%</b></div>`).join('');
+  const beat=x=>`${x.rs.filter(r=>Math.abs(r.error_pct)<Math.abs(r.baseline_error_pct[x.k])).length} of ${x.rs.length}`;
+  const L=bls.find(x=>x.k==='last_race'),G=bls.find(x=>x.k==='boosted_trees');
+  $('vsline').textContent=[L&&`TabPFN was closer than "same as last time" on ${beat(L)} legs`,G&&`closer than gradient-boosted trees on ${beat(G)}`].filter(Boolean).join(', and ')+'. Same training, same cut-off: nothing from race day or after.';
+  $('vs').hidden=false}
  $('btt').innerHTML='<tr><th>Date</th><th>Race leg</th><th>Predicted</th><th>Actual</th><th>Off by</th><th>80% range</th></tr>'+bt.map(r=>`<tr><td class="mono">${r.date}</td><td>${r.name.replace(/</g,'&lt;')}</td><td class="mono">${legT(r.sport,r.pred_s)}</td><td class="mono">${legT(r.sport,r.actual_s)}</td><td class="mono">${r.error_pct>0?'+':''}${r.error_pct}%</td><td class="${r.inside_80?'in':'out'}">${r.inside_80?'inside':'outside'}</td></tr>`).join('')}
 else{$('bth2').textContent='No past races marked in this export yet.'}
 const W=D.weekly,tot=W.reduce((a,w)=>a+w.swim+w.bike+w.run,0);

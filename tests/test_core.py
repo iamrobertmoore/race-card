@@ -92,3 +92,16 @@ def test_race_score():
     key = [["2022-09-18", "70.3 Weymouth bike"], ["2022-09-18", "70.3 Weymouth run"]]
     s = gemma.score(found, key)
     assert (s["agree"], s["precision"], s["recall"]) == (1, 0.5, 0.5)
+
+
+def test_baselines_only_use_the_past():
+    from racecard import backtest
+    s = _sessions()
+    s.loc[s.index[-1], "is_race"] = 1
+    races = s[s.is_race == 1]
+    r = races.iloc[-1]
+    ref = r.date.normalize()
+    b = backtest._baselines(s, races, r, ref)
+    assert set(b) == {"last_race", "boosted_trees", "straight_line", "recent_training"}
+    assert b["last_race"] is None  # no earlier race to copy
+    assert all(v is None or v > 0 for v in b.values())
