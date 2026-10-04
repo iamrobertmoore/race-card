@@ -284,8 +284,7 @@ function gapLine(c){const p0=pGoal(samples(c,[0,0,0]));if(p0>=.8){$('gap').inner
  $('gap').innerHTML=parts.length?`To make ${gname} ${word} here on one leg alone: ${parts.join(', or ')}.`:`No single leg gets ${gname} to ${word} here. It needs all three.`}
 function history(c){const key=c.name.replace('IRONMAN 70.3 ','').toLowerCase().split('-')[0];let rs=(D.backtest||[]).filter(r=>r.name.toLowerCase().includes(key));const per={};rs.forEach(r=>per[r.date]=(per[r.date]||0)+1);rs=rs.filter(r=>per[r.date]>=2);
  const yrs=[...new Set(rs.map(r=>r.date.slice(0,4)))].sort();if(!yrs.length){$('hist3').innerHTML=D.backtest_ran===false?'':`<div class="sh">Not raced here yet</div>`;return}
- const bikes=rs.filter(r=>r.sport==='bike');const slow=bikes.length>=2&&bikes.every(r=>r.error_pct<0);
- $('hist3').innerHTML=`<div class="sh">Raced here ${yrs.length} time${yrs.length>1?'s':''}</div><div class="yrs">${yrs.map(y=>`<span>${y}</span>`).join('')}</div>${slow?`<p style="margin-top:8px">The bike was slower than predicted every time, so read this course's bike as optimistic.</p>`:''}`}
+  $('hist3').innerHTML=`<div class="sh">Raced here ${yrs.length} time${yrs.length>1?'s':''}</div><div class="yrs">${yrs.map(y=>`<span>${y}</span>`).join('')}</div>`}
 function select(i){cur=i;$('course').value=i;const c=D.courses[i];gapLine(c);history(c);if(D.note){const mine=!D.note.facts||!D.note.facts.race||c.name.endsWith(D.note.facts.race.replace('IRONMAN ',''));$('note').hidden=!mine}
  $('cmeta').textContent=`${c.where.toUpperCase()} · BIKE +${c.bike_m} M · ${c.swim.toUpperCase()} SWIM`;
  document.querySelectorAll('.course').forEach((e,k)=>e.classList.toggle('on',k===i));update(true)}
