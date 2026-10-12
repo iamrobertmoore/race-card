@@ -1,5 +1,9 @@
 # Race Card
 
+[![Winner: Best Use of TabPFN, DEV Hacktoberfest Weekend Challenge 2026](https://img.shields.io/badge/%F0%9F%8F%86%20Winner-Best%20Use%20of%20TabPFN-a46bff?style=flat)](https://dev.to/devteam/congrats-to-the-hacktoberfest-weekend-challenge-build-for-a-friend-winners-pgc)
+
+🏆 **Winner, Best Use of TabPFN** in DEV's [Hacktoberfest Weekend Challenge: Build for a Friend](https://dev.to/devteam/congrats-to-the-hacktoberfest-weekend-challenge-build-for-a-friend-winners-pgc) (October 2026). [Read the write-up](https://dev.to/iamrobertmoore/my-mate-wants-a-sub-5-703-before-recommending-one-i-made-an-open-model-predict-79-of-my-old-race-4kcp).
+
 ![Race Card: dragging the bike slider moves the chance of a sub-5 at Weymouth from 31% to 47%, then the flat Erkner course shows 86%](docs/demo.gif)
 
 **Which IRONMAN 70.3 gives you the best shot at your goal time?** Race Card reads your own training
@@ -98,3 +102,8 @@ Google · [Ollama](https://ollama.com) · Geist and Geist Mono by Vercel. Built 
 programmer for the DEV Hacktoberfest Weekend Challenge, 2 to 5 October 2026.
 
 MIT licence.
+
+## Changes since the challenge deadline
+
+The deadline was 5 October 2026, 07:59 BST. Since then only this README has changed, to note the
+result. The code, the page and the data are as judged.
